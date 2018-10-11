@@ -1,5 +1,7 @@
 package at.sschmid.hcc.sbv1;
 
+import java.io.IOException;
+
 public class ConvolutionFilter {
 
 	public static double[][] ConvolveDoubleNorm(double[][] inputImg, int width, int height, double[][] kernel,
@@ -93,8 +95,8 @@ public class ConvolutionFilter {
 		return kernelImg;
 	}
 
-	public static double[][] GetGaussMask(int tgtRadius, double sigma) {
-		int size = 2 * tgtRadius + 1;
+	public static double[][] GetGaussMask(int radius, double sigma, boolean normalized) {
+		int size = 2 * radius + 1;
 		double[][] kernelImg = new double[size][size];
 		
 		final double sigmaPow = sigma * sigma;
@@ -104,21 +106,13 @@ public class ConvolutionFilter {
 		
 		try (final CSV csv = new CSV("gauss", "UE01\\files")) {
 			csv.open()
+				.addRow(csv.row().cell("radius").cell(radius))
 				.addRow(csv.row().cell("sigma").cell(sigma))
 				.addRow(csv.row().cell("fixed part").cell(fixedPart))
 				.addRow(csv.row().cell("mu").cell(mu))
 				.empty();
 			
-			final CSV.Row idxRow = csv.row().cell().cell("IDX");
-			final CSV.Row diffRow = csv.row().cell("IDX").cell("DIFF");
-			
-			for (int x = 0; x < size; x++) {
-				idxRow.cell(x);
-				diffRow.cell(x - mu);
-			}
-
-			csv.addRow(idxRow)
-				.addRow(diffRow);
+			csvMaskTableHeader(size, mu, csv);
 			
 			double maskSum = 0d;
 
@@ -143,11 +137,48 @@ public class ConvolutionFilter {
 			csv.addRow()
 				.addRow(csv.row().cell("cumulated sum value").empty(2).cell(maskSum));
 			
+			if (normalized) {
+				csv.empty()
+					.addRow(csv.row().cell("normalized"));
+				csvMaskTableHeader(size, mu, csv);
+
+				double normalizedMaskSum = 0d;
+				for (int y = 0; y < size; y++) {
+					yDiff = y - mu;
+					final CSV.Row maskRow = csv.row().cell(y).cell(yDiff);
+					for (int x = 0; x < size; x++) {
+						final double normalizedValue = kernelImg[x][y] / maskSum;
+						kernelImg[x][y] = normalizedValue;
+						
+						maskRow.cell(normalizedValue);
+						normalizedMaskSum += normalizedValue;
+					}
+					
+					csv.addRow(maskRow);
+				}
+				
+				csv.addRow()
+					.addRow(csv.row().cell("cumulated sum value").empty(2).cell(normalizedMaskSum));
+			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
 		return kernelImg;
+	}
+
+	private static void csvMaskTableHeader(int size, final double mu, final CSV csv) throws IOException {
+		final CSV.Row idxRow = csv.row().cell().cell("IDX");
+		final CSV.Row diffRow = csv.row().cell("IDX").cell("DIFF");
+		
+		for (int x = 0; x < size; x++) {
+			idxRow.cell(x);
+			diffRow.cell(x - mu);
+		}
+
+		csv.addRow(idxRow)
+			.addRow(diffRow);
 	}
 
 	public static double[][] ApplySobelEdgeDetection(double[][] inputImg, int width, int height) {

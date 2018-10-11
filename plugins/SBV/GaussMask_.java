@@ -47,7 +47,7 @@ public class GaussMask_ implements PlugInFilter {
 		int[][] inDataArrInt = ImageJUtility.convertFrom1DByteArr(pixels, width, height);
 		double[][] inDataArrDbl = ImageJUtility.convertToDoubleArr2D(inDataArrInt, width, height);
 		
-		double[][] kernel = ConvolutionFilter.GetGaussMask(tgtRadius, tgtSigma);
+		double[][] kernel = ConvolutionFilter.GetGaussMask(tgtRadius, tgtSigma, true);
 		double[][] resultImg = ConvolutionFilter.ConvolveDoubleNorm(inDataArrDbl, width, height, kernel, tgtRadius);
 		
 		ImageJUtility.showNewImage(resultImg, width, height, "gauss with kernel r=" + tgtRadius + " s=" + tgtSigma);
