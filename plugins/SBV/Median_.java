@@ -67,7 +67,29 @@ public class Median_ implements PlugInFilter {
 		final int[][] resultImg = new int[width][height];
 		final int maskWidth = 2 * radius + 1;
 		final int maskSize = maskWidth * maskWidth;
-
+		
+		final String maskLabel = new StringBuilder("Distinct Mask (r=")
+				.append(radius)
+				.append(", w=")
+				.append(maskWidth)
+				.append(", s=")
+				.append(maskSize)
+				.append(')')
+				.toString();
+		
+		csv.addRow(csv.row()
+				.cell("Pixel")
+				.cell("Old Color")
+				.cell("New Color")
+				.cell("Avg")
+				.cell("Std-Dev")
+				.cell("Min")
+				.cell("Max")
+				.cell("Min Delta")
+				.cell("Max Delta")
+				.empty()
+				.cell(maskLabel));
+		
 		int[] mask;
 		for (int x = 0; x < width; x++) {
 			for (int y = 0; y < height; y++) {
@@ -85,8 +107,24 @@ public class Median_ implements PlugInFilter {
 				}
 
 				Arrays.sort(mask);
-				csv.addRow(mask);
 				resultImg[x][y] = mask[maskSize / 2];
+				
+				final double avg = Arrays.stream(mask).average().orElse(0);
+				final double sumOfAbsDiffs = Arrays.stream(mask).mapToDouble(n -> Math.pow(n - avg, 2)).sum();
+				final double stdDev = Math.sqrt(sumOfAbsDiffs / (mask.length - 1));
+				
+				csv.addRow(csv.row()
+						.cell(new StringBuilder("[").append(x).append("][").append(y).append("]").toString())
+						.cell(inImg[x][y])
+						.cell(resultImg[x][y])
+						.floatingPointCell(avg, 3)
+						.floatingPointCell(stdDev, 3)
+						.cell(mask[0])
+						.cell(mask[mask.length - 1])
+						.cell('-')
+						.cell('-')
+						.empty()
+						.cells(Arrays.stream(mask).distinct().toArray()));
 			}
 		}
 

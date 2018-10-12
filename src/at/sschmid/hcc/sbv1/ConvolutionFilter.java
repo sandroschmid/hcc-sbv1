@@ -110,7 +110,7 @@ public class ConvolutionFilter {
 				.addRow(csv.row().cell("sigma").cell(sigma))
 				.addRow(csv.row().cell("fixed part").cell(fixedPart))
 				.addRow(csv.row().cell("mu").cell(mu))
-				.empty();
+				.emptyRow();
 			
 			csvMaskTableHeader(size, mu, csv);
 			
@@ -138,7 +138,7 @@ public class ConvolutionFilter {
 				.addRow(csv.row().cell("cumulated sum value").empty(2).cell(maskSum));
 			
 			if (normalized) {
-				csv.empty()
+				csv.emptyRow()
 					.addRow(csv.row().cell("normalized"));
 				csvMaskTableHeader(size, mu, csv);
 

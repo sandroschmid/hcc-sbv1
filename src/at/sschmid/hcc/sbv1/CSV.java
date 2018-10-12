@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -16,11 +17,11 @@ import java.util.stream.Stream;
  * Helper class for creating and writing CSV files.
  * 
  * @author Sandro Schmid <sandro.schmid@students.fh-hagenberg.at>
- * @version 1.0.0
+ * @version 1.0.1
  */
 public class CSV implements AutoCloseable {
-
-	private static final Logger logger = Logger.getLogger(CSV.class.getName());
+	
+	private static final Logger LOG = Logger.getLogger(CSV.class.getName());
 	private static final String CELL_DELIMITER = ";";
 	
 	/**
@@ -132,13 +133,13 @@ public class CSV implements AutoCloseable {
 	 * @throws IOException
 	 */
 	public CSV addRow(final byte[] values, final int n) throws IOException {		
-		final StringBuilder rowBuilder = new StringBuilder();
+		final StringBuilder row = new StringBuilder();
 		for (int i = 0; i < values.length; i++) {
-			rowBuilder.append(values[i])
+			row.append(values[i])
 				.append(CELL_DELIMITER);
 		}
 		
-		appendRow(rowBuilder.deleteCharAt(values.length - 1).toString(), n);
+		appendRow(row.deleteCharAt(row.length() - 1).toString(), n);
 		return this;
 	}
 	
@@ -254,7 +255,39 @@ public class CSV implements AutoCloseable {
 				.append(CELL_DELIMITER);
 		}
 
-		appendRow(row.deleteCharAt(values.length - 1).toString(), n);
+		appendRow(row.deleteCharAt(row.length() - 1).toString(), n);
+		return this;
+	}
+	
+	/**
+	 * Adds a row of cells with {@code char}-values.
+	 * Once added, a row cannot be changed anymore.
+	 * 
+	 * @param row Cells with {@link String}-values to use for the new CSV-row
+	 * @return {@link CSV}-builder
+	 * @throws IOException
+	 */
+	public CSV addRow(final char[] values) throws IOException {
+		return addRow(values, 1);
+	}
+	
+	/**
+	 * Adds a row of cells with {@code char}-values {@code n} times.
+	 * Once added, a row cannot be changed anymore.
+	 * 
+	 * @param row Cells with {@link String}-values to use for the new CSV-row
+	 * @param n Number of copies of the {@code row}
+	 * @return {@link CSV}-builder
+	 * @throws IOException
+	 */
+	public CSV addRow(final char[] values, final int n) throws IOException {
+		final StringBuilder row = new StringBuilder();
+		for (int i = 0; i < values.length; i++) {
+			row.append(values[i])
+				.append(CELL_DELIMITER);
+		}
+
+		appendRow(row.deleteCharAt(row.length() - 1).toString(), n);
 		return this;
 	}
 	
@@ -311,13 +344,13 @@ public class CSV implements AutoCloseable {
 	}
 	
 	/**
-	 * Alias for {@link #empty(int))}
+	 * Alias for {@link #empty())}
 	 * 
 	 * @return {@link CSV}-builder
 	 * @throws IOException
 	 */
 	public CSV addRow() throws IOException {
-		return empty();
+		return emptyRow();
 	}
 	
 	/**
@@ -327,8 +360,8 @@ public class CSV implements AutoCloseable {
 	 * @return {@link CSV}-builder
 	 * @throws IOException
 	 */
-	public CSV empty() throws IOException {
-		return empty(1);
+	public CSV emptyRow() throws IOException {
+		return emptyRow(1);
 	}
 	
 	/**
@@ -339,7 +372,7 @@ public class CSV implements AutoCloseable {
 	 * @return {@link CSV}-builder
 	 * @throws IOException
 	 */
-	public CSV empty(final int n) throws IOException {
+	public CSV emptyRow(final int n) throws IOException {
 		appendRow("", n);
 		return this;
 	}
@@ -411,7 +444,7 @@ public class CSV implements AutoCloseable {
 	
 	private void logFileAction(final String action) {
 		if (config.isLoggingEnabled) {
-			logger.info(action + " file '" + this.filename + "' (" + config.lang + ")");
+			LOG.info(action + " file '" + this.filename + "' (" + config.lang + ")");
 		}
 	}
 	
@@ -543,7 +576,7 @@ public class CSV implements AutoCloseable {
 	 * Builder for a row in a CSV file.
 	 * 
 	 * @author Sandro Schmid <sandro.schmid@students.fh-hagenberg.at>
-	 * @version 1.0.0
+	 * @version 1.0.1
 	 */
 	public class Row {
 		
@@ -565,7 +598,7 @@ public class CSV implements AutoCloseable {
 		 * @return {@link Row}-builder
 		 */
 		public Row cell(final byte value) {
-			return cell(Byte.toString(value));
+			return cell(value, 1);
 		}
 
 		/**
@@ -573,10 +606,25 @@ public class CSV implements AutoCloseable {
 		 * Once added, a cell cannot be changed anymore.
 		 * 
 		 * @param value The cell's value
+		 * @param n How often the {@code value} should be added
 		 * @return {@link Row}-builder
 		 */
 		public Row cell(final byte value, final int n) {
 			return cell(Byte.toString(value), n);
+		}
+
+		/**
+		 * Adds a cell for each {@code byte}-value in the array.
+		 * Once added, a cell cannot be changed anymore.
+		 * 
+		 * @param values The values for the cells
+		 * @return {@link Row}-builder
+		 */
+		public Row cells(final byte[] values) {
+			for (byte value : values) {
+				cell(value);
+			}
+			return this;
 		}
 		
 		/**
@@ -587,7 +635,7 @@ public class CSV implements AutoCloseable {
 		 * @return {@link Row}-builder
 		 */
 		public Row cell(final int value) {
-			return cell(Integer.toString(value));
+			return cell(value, 1);
 		}
 
 		/**
@@ -595,10 +643,23 @@ public class CSV implements AutoCloseable {
 		 * Once added, a cell cannot be changed anymore.
 		 * 
 		 * @param value The cell's value
+		 * @param n How often the {@code value} should be added
 		 * @return {@link Row}-builder
 		 */
 		public Row cell(final int value, final int n) {
 			return cell(Integer.toString(value), n);
+		}
+
+		/**
+		 * Adds a cell for each {@code int}-value in the array.
+		 * Once added, a cell cannot be changed anymore.
+		 * 
+		 * @param values The values for the cells
+		 * @return {@link Row}-builder
+		 */
+		public Row cells(final int[] values) {
+			Arrays.stream(values).forEach(value -> cell(value));
+			return this;
 		}
 		
 		/**
@@ -609,7 +670,7 @@ public class CSV implements AutoCloseable {
 		 * @return {@link Row}-builder
 		 */
 		public Row cell(final long value) {
-			return cell(Long.toString(value));
+			return cell(value, 1);
 		}
 
 		/**
@@ -617,10 +678,23 @@ public class CSV implements AutoCloseable {
 		 * Once added, a cell cannot be changed anymore.
 		 * 
 		 * @param value The cell's value
+		 * @param n How often the {@code value} should be added
 		 * @return {@link Row}-builder
 		 */
 		public Row cell(final long value, final int n) {
 			return cell(Long.toString(value), n);
+		}
+
+		/**
+		 * Adds a cell for each {@code long}-value in the array.
+		 * Once added, a cell cannot be changed anymore.
+		 * 
+		 * @param values The values for the cells
+		 * @return {@link Row}-builder
+		 */
+		public Row cells(final long[] values) {
+			Arrays.stream(values).forEach(value -> cell(value));
+			return this;
 		}
 
 		/**
@@ -631,18 +705,72 @@ public class CSV implements AutoCloseable {
 		 * @return {@link Row}-builder
 		 */
 		public Row cell(final double value) {
-			return cell(translateFloatingPoint(value));
+			return cell(value, 1);
 		}
-
+		
 		/**
 		 * Adds a cell {@code n} times with a {@code double}-value.
 		 * Once added, a cell cannot be changed anymore.
 		 * 
 		 * @param value The cell's value
+		 * @param n How often the {@code value} should be added
 		 * @return {@link Row}-builder
 		 */
 		public Row cell(final double value, final int n) {
 			return cell(translateFloatingPoint(value), n);
+		}
+
+		/**
+		 * Adds a cell for each {@code double}-value in the array.
+		 * Once added, a cell cannot be changed anymore.
+		 * 
+		 * @param values The values for the cells
+		 * @return {@link Row}-builder
+		 */
+		public Row cells(final double[] values) {
+			Arrays.stream(values).forEach(value -> cell(value));
+			return this;
+		}
+
+		/**
+		 * Adds a cell with a translated {@code double}-value.
+		 * Once added, a cell cannot be changed anymore.
+		 * 
+		 * @param value The cell's value
+		 * @param maxFractionDigits The maximum number of fraction digits
+		 * @return {@link Row}-builder
+		 */
+		public Row floatingPointCell(final double value, final int maxFractionDigits) {
+			return floatingPointCell(value, maxFractionDigits, 1);
+		}
+
+		/**
+		 * Adds a cell {@code n} times with a translated {@code double}-value.
+		 * Once added, a cell cannot be changed anymore.
+		 * 
+		 * @param value The cell's value
+		 * @param maxFractionDigits The maximum number of fraction digits
+		 * @param n How often the {@code value} should be added
+		 * @return {@link Row}-builder
+		 */
+		public Row floatingPointCell(final double value, final int maxFractionDigits, final int n) {
+			final double formated = new BigDecimal(value)
+					.setScale(maxFractionDigits, BigDecimal.ROUND_HALF_UP)
+					.doubleValue();
+			return cell(formated, n);
+		}
+
+		/**
+		 * Adds a cell for each {@code double}-value in the array.
+		 * Once added, a cell cannot be changed anymore.
+		 * 
+		 * @param values The values for the cells
+		 * @param maxFractionDigits The maximum number of fraction digits
+		 * @return {@link Row}-builder
+		 */
+		public Row floatingPointCells(final double[] values, final int maxFractionDigits) {
+			Arrays.stream(values).forEach(value -> floatingPointCell(value, maxFractionDigits));
+			return this;
 		}
 
 		/**
@@ -653,7 +781,7 @@ public class CSV implements AutoCloseable {
 		 * @return {@link Row}-builder
 		 */
 		public Row cell(final float value) {
-			return cell(translateFloatingPoint(value));
+			return cell(value, 1);
 		}
 
 		/**
@@ -661,10 +789,105 @@ public class CSV implements AutoCloseable {
 		 * Once added, a cell cannot be changed anymore.
 		 * 
 		 * @param value The cell's value
+		 * @param n How often the {@code value} should be added
 		 * @return {@link Row}-builder
 		 */
 		public Row cell(final float value, final int n) {
 			return cell(translateFloatingPoint(value), n);
+		}
+
+		/**
+		 * Adds a cell for each {@code float}-value in the array.
+		 * Once added, a cell cannot be changed anymore.
+		 * 
+		 * @param values The values for the cells
+		 * @return {@link Row}-builder
+		 */
+		public Row cells(final float[] values) {
+			for (float value : values) {
+				cell(value);
+			}
+			return this;
+		}
+
+		/**
+		 * Adds a cell with a translated {@code float}-value.
+		 * Once added, a cell cannot be changed anymore.
+		 * 
+		 * @param value The cell's value
+		 * @param maxFractionDigits The maximum number of fraction digits
+		 * @return {@link Row}-builder
+		 */
+		public Row floatingPointCell(final float value, final int maxFractionDigits) {
+			return floatingPointCell(value, maxFractionDigits, 1);
+		}
+
+		/**
+		 * Adds a cell {@code n} times with a translated {@code float}-value.
+		 * Once added, a cell cannot be changed anymore.
+		 * 
+		 * @param value The cell's value
+		 * @param maxFractionDigits The maximum number of fraction digits
+		 * @param n How often the {@code value} should be added
+		 * @return {@link Row}-builder
+		 */
+		public Row floatingPointCell(final float value, final int maxFractionDigits, final int n) {
+			final float formated = new BigDecimal(value)
+					.setScale(maxFractionDigits, BigDecimal.ROUND_HALF_UP)
+					.floatValue();
+			return cell(formated, n);
+		}
+
+		/**
+		 * Adds a cell for each {@code float}-value in the array.
+		 * Once added, a cell cannot be changed anymore.
+		 * 
+		 * @param values The values for the cells
+		 * @param maxFractionDigits The maximum number of fraction digits
+		 * @return {@link Row}-builder
+		 */
+		public Row floatingPointCells(final float[] values, final int maxFractionDigits) {
+			for (float value : values) {
+				floatingPointCell(value, maxFractionDigits);
+			}
+			return this;
+		}
+		
+		/**
+		 * Adds a cell with a {@code char}-value.
+		 * Once added, a cell cannot be changed anymore.
+		 * 
+		 * @param value The cell's value
+		 * @return {@link Row}-builder
+		 */
+		public Row cell(final char value) {
+			return cell(value, 1);
+		}
+
+		/**
+		 * Adds a cell {@code n} times with a {@code char}-value.
+		 * Once added, a cell cannot be changed anymore.
+		 * 
+		 * @param value The cell's value
+		 * @param n How often the {@code value} should be added
+		 * @return {@link Row}-builder
+		 */
+		public Row cell(final char value, final int n) {
+			return cell(String.valueOf(value), n);
+		}
+
+		/**
+		 * Adds a cell for each {@code char}-value in the array.
+		 * Once added, a cell cannot be changed anymore.
+		 * 
+		 * @param values The values for the cells
+		 * @return {@link Row}-builder
+		 */
+		public Row cells(final char[] values) {
+			for (float value : values) {
+				cell(value);
+			}
+			return this;
 		}
 
 		/**
@@ -685,6 +908,7 @@ public class CSV implements AutoCloseable {
 		 * Once added, a cell cannot be changed anymore.
 		 * 
 		 * @param value The cell's value
+		 * @param n How often the {@code value} should be added
 		 * @return {@link Row}-builder
 		 */
 		public Row cell(final String value, final int n) {
@@ -696,6 +920,18 @@ public class CSV implements AutoCloseable {
 				row.append(CSV.CELL_DELIMITER);
 			}
 			
+			return this;
+		}
+
+		/**
+//		 * Adds a cell for each {@link String}-value in the array.
+		 * Once added, a cell cannot be changed anymore.
+		 * 
+		 * @param values The values for the cells
+		 * @return {@link Row}-builder
+		 */
+		public Row cells(final String[] values) {
+			Arrays.stream(values).forEach(value -> cell(value));
 			return this;
 		}
 
