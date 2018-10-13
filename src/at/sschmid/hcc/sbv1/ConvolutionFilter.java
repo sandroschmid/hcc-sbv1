@@ -167,6 +167,31 @@ public class ConvolutionFilter {
 
 		return kernelImg;
 	}
+	
+	public static double[][] gaussMaskAsImage(double[][] kernel, int radius) {
+		final int kernelSize = 2 * radius + 1;
+		final double[][] kernelImg = new double[kernelSize][kernelSize];
+		
+		double kernelMax = 0d;
+		for (int x = 0; x < kernelSize; x++) {
+			for (int y = 0; y < kernelSize; y++) {
+				final double value = kernel[x][y];
+				if (value > kernelMax) {
+					kernelMax = value;
+				}
+			}
+		}
+		
+		// normalize to colors
+		final double correctionFactor = kernelMax / 255.0d;
+		for (int x = 0; x < kernelSize; x++) {
+			for (int y = 0; y < kernelSize; y++) {
+				kernelImg[x][y] = kernel[x][y] / correctionFactor;
+			}
+		}
+		
+		return kernelImg;
+	}
 
 	private static void csvMaskTableHeader(int size, final double mu, final CSV csv) throws IOException {
 		final CSV.Row idxRow = csv.row().cell().cell("IDX");
@@ -181,13 +206,48 @@ public class ConvolutionFilter {
 			.addRow(diffRow);
 	}
 
+	/**
+	 * Summe aller Maskenelemente = 0 --> gültiger Kantendetektor. Frage: Liefert er auch Kanten bei
+	 * Anwendung durch Maske?
+	 * 
+	 * @param inputImg
+	 * @param width
+	 * @param height
+	 * @return
+	 */
 	public static double[][] ApplySobelEdgeDetection(double[][] inputImg, int width, int height) {
 		double[][] returnImg = new double[width][height];
-//		double[][] sobelV = new double[][] { { 1.0, 0.0, -1.0 }, { 2.0, 0.0, -2.0 }, { 1.0, 0.0, -1.0 } };
-//		double[][] sobelH = new double[][] { { 1.0, 2.0, 1.0 }, { 0.0, 0.0, 0.0 }, { -1.0, -2.0, -1.0 } };
+		double[][] sobelV = new double[][] { { 1.0, 0.0, -1.0 }, { 2.0, 0.0, -2.0 }, { 1.0, 0.0, -1.0 } };
+		double[][] sobelH = new double[][] { { 1.0, 2.0, 1.0 }, { 0.0, 0.0, 0.0 }, { -1.0, -2.0, -1.0 } };
 
-//		int radius = 1;
-//		double maxGradient = 0.0;
+		int radius = 1;
+		double[][] resultSobelV = ConvolveDouble(inputImg, width, height, sobelV, radius);
+		double[][] resultSobelH = ConvolveDouble(inputImg, width, height, sobelH, radius);
+		
+		double maxGradient = 1.0;
+		
+		// construct result
+		for (int x = 0; x < width; x++) {
+			for (int y = 0; y < height; y++) {
+				double vAbs = Math.abs(resultSobelV[x][y]);
+				double hAbs = Math.abs(resultSobelH[x][y]);
+				double resVal = vAbs + hAbs;
+				returnImg[x][y] = resVal;
+				
+				// new max gradient?
+				if (resVal > maxGradient) {
+					maxGradient = resVal;
+				}
+			}
+		}
+		
+		// normalized result to prevent color overflows
+		double correctionFactor = maxGradient / 255.0d;
+		for (int x = 0; x < width; x++) {
+			for (int y = 0; y < height; y++) {
+				returnImg[x][y] /= correctionFactor;
+			}
+		}
 
 		return returnImg;
 	}
