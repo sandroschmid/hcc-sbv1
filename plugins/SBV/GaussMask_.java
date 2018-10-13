@@ -43,14 +43,18 @@ public class GaussMask_ implements PlugInFilter {
 		 *   (this is the same as in Photoshop, ...).
 		 */
 		tgtSigma = tgtRadius * Math.exp(-0.5);
-
+		final int kernelSize = 2 * tgtRadius + 1;
+		
 		int[][] inDataArrInt = ImageJUtility.convertFrom1DByteArr(pixels, width, height);
 		double[][] inDataArrDbl = ImageJUtility.convertToDoubleArr2D(inDataArrInt, width, height);
 		
 		double[][] kernel = ConvolutionFilter.GetGaussMask(tgtRadius, tgtSigma, true);
+		double[][] kernelImg = ConvolutionFilter.maskAsImage(kernel, tgtRadius);
 		double[][] resultImg = ConvolutionFilter.ConvolveDoubleNorm(inDataArrDbl, width, height, kernel, tgtRadius);
 		
 		ImageJUtility.showNewImage(resultImg, width, height, "gauss with kernel r=" + tgtRadius + " s=" + tgtSigma);
+		ImageJUtility.showNewImage(kernelImg, kernelSize, kernelSize, "gauss kernel r=" + tgtRadius + " s=" + tgtSigma);
+		
 	} // run
 
 	void showAbout() {
