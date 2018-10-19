@@ -138,6 +138,8 @@ public class ConvolutionFilter {
 				.addRow(csv.row().cell("cumulated sum value").empty(2).cell(maskSum));
 			
 			if (normalized) {
+				double maxMaskValue = 0d;
+				
 				csv.emptyRow()
 					.addRow(csv.row().cell("normalized"));
 				csvMaskTableHeader(size, mu, csv);
@@ -152,6 +154,10 @@ public class ConvolutionFilter {
 						
 						maskRow.cell(normalizedValue);
 						normalizedMaskSum += normalizedValue;
+						
+						if (normalizedValue > maxMaskValue) {
+							maxMaskValue = normalizedValue;
+						}
 					}
 					
 					csv.addRow(maskRow);
@@ -159,6 +165,23 @@ public class ConvolutionFilter {
 				
 				csv.addRow()
 					.addRow(csv.row().cell("cumulated sum value").empty(2).cell(normalizedMaskSum));
+				
+
+				csv.emptyRow()
+					.addRow(csv.row().cell("normalized (as colors)"));
+				csvMaskTableHeader(size, mu, csv);
+
+				final double toColorFactor = maxMaskValue / 255.0d;
+				for (int y = 0; y < size; y++) {
+					yDiff = y - mu;
+					final CSV.Row maskRow = csv.row().cell(y).cell(yDiff);
+					for (int x = 0; x < size; x++) {
+						final int color = (int) Math.floor(kernelImg[x][y] / toColorFactor);						
+						maskRow.cell(color);
+					}
+					
+					csv.addRow(maskRow);
+				}
 			}
 			
 		} catch (Exception e) {

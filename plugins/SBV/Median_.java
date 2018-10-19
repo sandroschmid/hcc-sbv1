@@ -127,7 +127,7 @@ public class Median_ implements PlugInFilter {
 						.cells(Arrays.stream(mask).distinct().toArray()));
 			}
 		}
-
+		
 		System.out.println("Median-Filter " + ((System.currentTimeMillis() - start) / 1000.0d) + "s");
 		
 		return resultImg;
