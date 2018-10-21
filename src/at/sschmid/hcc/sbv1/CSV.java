@@ -2,6 +2,7 @@ package at.sschmid.hcc.sbv1;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -12,7 +13,7 @@ import java.util.stream.Stream;
  * Helper class for creating and writing CSV files.
  *
  * @author Sandro Schmid <sandro.schmid@students.fh-hagenberg.at>
- * @version 1.0.1
+ * @version 1.0.2
  */
 public class CSV implements AutoCloseable {
   
@@ -23,21 +24,20 @@ public class CSV implements AutoCloseable {
    * Default configuration for the CSV file. Either adopt this to your needs here for a global defaults or use {@link
    * #setDefaultConfig(Config)} before creating {@link CSV}-instances.
    */
-  private static Config defaultConfig = Config.defaults()
-      .withLang(Lang.GERMAN)
-      .withOutputDirectory("D:\\Documents\\Dropbox\\FH HGB\\HCC\\Semester 1\\SBV1\\UE\\");
+  private static Config defaultConfig = Config.defaults();
+  
   private final Config config;
   private final String filename;
+  
   private Writer writer;
   
   /**
    * Initialize a new CSV-file. Use {@link #open()} to create and open the actual file before adding any lines. Not
    * opening the file first will result in an {@link IllegalStateException}.
    *
-   * @param filename
-   * @throws IOException
+   * @param filename {@link String}
    */
-  public CSV(final String filename) throws IOException {
+  public CSV(final String filename) {
     this(filename, null);
   }
   
@@ -45,12 +45,10 @@ public class CSV implements AutoCloseable {
    * Initialize a new CSV-file. Use {@link #open()} to create and open the actual file before adding any lines. Not
    * opening the file first will result in an {@link IllegalStateException}.
    *
-   * @param filename
-   * @param subDirectory
-   * @param config
-   * @throws IOException
+   * @param filename     The filename for the output file.
+   * @param subDirectory The subdirectory relative to the directory defined in {@link #defaultConfig}.
    */
-  public CSV(final String filename, final String subDirectory) throws IOException {
+  public CSV(final String filename, final String subDirectory) {
     this.config = new Config(defaultConfig);
     
     final StringBuilder file = new StringBuilder(config.outputDirectory);
@@ -70,7 +68,7 @@ public class CSV implements AutoCloseable {
    * Sets a default configuration for any future CSV-files. Note that previously create {@link CSV}-instances will not
    * be affected by this change.
    *
-   * @param defaultConfig
+   * @param defaultConfig {@link Config}-instance for future {@link CSV}-instances.
    */
   public static void setDefaultConfig(Config defaultConfig) {
     if (defaultConfig == null) {
@@ -85,11 +83,12 @@ public class CSV implements AutoCloseable {
    *
    * @return {@link CSV}-builder
    *
-   * @throws IOException
+   * @throws FileNotFoundException if the file {@link #filename} could not be found.
    */
   public CSV open() throws IOException {
     logFileAction("Opening");
-    writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(this.filename)), "UTF-8"));
+    writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(this.filename)),
+        StandardCharsets.UTF_8));
     return this;
   }
   
@@ -105,10 +104,10 @@ public class CSV implements AutoCloseable {
   /**
    * Adds a row of cells with {@code byte}-values. Once added, a row cannot be changed anymore.
    *
-   * @param row Cells with {@code byte}-values to use for the new CSV-row
+   * @param values Cells with {@code byte}-values to use for the new CSV-row
    * @return {@link CSV}-builder
    *
-   * @throws IOException
+   * @throws IOException If an I/O error occurs
    */
   public CSV addRow(final byte[] values) throws IOException {
     return addRow(values, 1);
@@ -117,16 +116,16 @@ public class CSV implements AutoCloseable {
   /**
    * Adds a row of cells with {@code byte}-values {@code n} times. Once added, a row cannot be changed anymore.
    *
-   * @param row Cells with {@code byte}-values to use for the new CSV-row
-   * @param n   Number of copies of the {@code row}
+   * @param values Cells with {@code byte}-values to use for the new CSV-row
+   * @param n      Number of copies of the {@code values}
    * @return {@link CSV}-builder
    *
-   * @throws IOException
+   * @throws IOException If an I/O error occurs
    */
   public CSV addRow(final byte[] values, final int n) throws IOException {
     final StringBuilder row = new StringBuilder();
-    for (int i = 0; i < values.length; i++) {
-      row.append(values[i])
+    for (final byte value : values) {
+      row.append(value)
           .append(CELL_DELIMITER);
     }
     
@@ -138,10 +137,10 @@ public class CSV implements AutoCloseable {
   /**
    * Adds a row of cells with {@code int}-values. Once added, a row cannot be changed anymore.
    *
-   * @param row Cells with {@code int}-values to use for the new CSV-row
+   * @param values Cells with {@code int}-values to use for the new CSV-row
    * @return {@link CSV}-builder
    *
-   * @throws IOException
+   * @throws IOException If an I/O error occurs
    */
   public CSV addRow(final int[] values) throws IOException {
     return addRow(values, 1);
@@ -150,15 +149,15 @@ public class CSV implements AutoCloseable {
   /**
    * Adds a row of cells with {@code int}-values {@code n} times. Once added, a row cannot be changed anymore.
    *
-   * @param row Cells with {@code int}-values to use for the new CSV-row
-   * @param n   Number of copies of the {@code row}
+   * @param values Cells with {@code int}-values to use for the new CSV-row
+   * @param n      Number of copies of the {@code values}
    * @return {@link CSV}-builder
    *
-   * @throws IOException
+   * @throws IOException If an I/O error occurs
    */
   public CSV addRow(final int[] values, final int n) throws IOException {
     final Stream<String> stringValues = Arrays.stream(values)
-        .mapToObj(v -> Integer.toString(v));
+        .mapToObj(Integer::toString);
     appendRow(stringValues, n);
     return this;
   }
@@ -166,10 +165,10 @@ public class CSV implements AutoCloseable {
   /**
    * Adds a row of cells with {@code long}-values. Once added, a row cannot be changed anymore.
    *
-   * @param row Cells with {@code long}-values to use for the new CSV-row
+   * @param values Cells with {@code long}-values to use for the new CSV-row
    * @return {@link CSV}-builder
    *
-   * @throws IOException
+   * @throws IOException If an I/O error occurs
    */
   public CSV addRow(final long[] values) throws IOException {
     return addRow(values, 1);
@@ -178,15 +177,15 @@ public class CSV implements AutoCloseable {
   /**
    * Adds a row of cells with {@code long}-values {@code n} times. Once added, a row cannot be changed anymore.
    *
-   * @param row Cells with {@code long}-values to use for the new CSV-row
-   * @param n   Number of copies of the {@code row}
+   * @param values Cells with {@code long}-values to use for the new CSV-row
+   * @param n      Number of copies of the {@code values}
    * @return {@link CSV}-builder
    *
-   * @throws IOException
+   * @throws IOException If an I/O error occurs
    */
   public CSV addRow(final long[] values, final int n) throws IOException {
     final Stream<String> stringValues = Arrays.stream(values)
-        .mapToObj(v -> Long.toString(v));
+        .mapToObj(Long::toString);
     appendRow(stringValues, n);
     return this;
   }
@@ -194,10 +193,10 @@ public class CSV implements AutoCloseable {
   /**
    * Adds a row of cells with translated {@code double}-values. Once added, a row cannot be changed anymore.
    *
-   * @param row Cells with {@code double}-values to use for the new CSV-row
+   * @param values Cells with {@code double}-values to use for the new CSV-row
    * @return {@link CSV}-builder
    *
-   * @throws IOException
+   * @throws IOException If an I/O error occurs
    */
   public CSV addRow(final double[] values) throws IOException {
     return addRow(values, 1);
@@ -207,15 +206,15 @@ public class CSV implements AutoCloseable {
    * Adds a row of cells with translated {@code double}-values {@code n} times. Once added, a row cannot be changed
    * anymore.
    *
-   * @param row Cells with {@code double}-values to use for the new CSV-row
-   * @param n   Number of copies of the {@code row}
+   * @param values Cells with {@code double}-values to use for the new CSV-row
+   * @param n      Number of copies of the {@code values}
    * @return {@link CSV}-builder
    *
-   * @throws IOException
+   * @throws IOException If an I/O error occurs
    */
   public CSV addRow(final double[] values, final int n) throws IOException {
     final Stream<String> stringValues = Arrays.stream(values)
-        .mapToObj(v -> translateFloatingPoint(v));
+        .mapToObj(this::translateFloatingPoint);
     appendRow(stringValues, n);
     return this;
   }
@@ -223,10 +222,10 @@ public class CSV implements AutoCloseable {
   /**
    * Adds a row of cells with translated {@code float}-values. Once added, a row cannot be changed anymore.
    *
-   * @param row Cells with {@code float}-values to use for the new CSV-row
+   * @param values Cells with {@code float}-values to use for the new CSV-row
    * @return {@link CSV}-builder
    *
-   * @throws IOException
+   * @throws IOException If an I/O error occurs
    */
   public CSV addRow(final float[] values) throws IOException {
     return addRow(values, 1);
@@ -236,16 +235,16 @@ public class CSV implements AutoCloseable {
    * Adds a row of cells with translated {@code float}-values {@code n} times. Once added, a row cannot be changed
    * anymore.
    *
-   * @param row Cells with {@code float}-values to use for the new CSV-row
-   * @param n   Number of copies of the {@code row}
+   * @param values Cells with {@code float}-values to use for the new CSV-row
+   * @param n      Number of copies of the {@code values}
    * @return {@link CSV}-builder
    *
-   * @throws IOException
+   * @throws IOException If an I/O error occurs
    */
   public CSV addRow(final float[] values, final int n) throws IOException {
     final StringBuilder row = new StringBuilder();
-    for (int i = 0; i < values.length; i++) {
-      row.append(translateFloatingPoint(values[i]))
+    for (final float value : values) {
+      row.append(translateFloatingPoint(value))
           .append(CELL_DELIMITER);
     }
     
@@ -257,10 +256,10 @@ public class CSV implements AutoCloseable {
   /**
    * Adds a row of cells with {@code char}-values. Once added, a row cannot be changed anymore.
    *
-   * @param row Cells with {@link String}-values to use for the new CSV-row
+   * @param values Cells with {@link String}-values to use for the new CSV-row
    * @return {@link CSV}-builder
    *
-   * @throws IOException
+   * @throws IOException If an I/O error occurs
    */
   public CSV addRow(final char[] values) throws IOException {
     return addRow(values, 1);
@@ -269,16 +268,16 @@ public class CSV implements AutoCloseable {
   /**
    * Adds a row of cells with {@code char}-values {@code n} times. Once added, a row cannot be changed anymore.
    *
-   * @param row Cells with {@link String}-values to use for the new CSV-row
-   * @param n   Number of copies of the {@code row}
+   * @param values Cells with {@link String}-values to use for the new CSV-row
+   * @param n      Number of copies of the {@code values}
    * @return {@link CSV}-builder
    *
-   * @throws IOException
+   * @throws IOException If an I/O error occurs
    */
   public CSV addRow(final char[] values, final int n) throws IOException {
     final StringBuilder row = new StringBuilder();
-    for (int i = 0; i < values.length; i++) {
-      row.append(values[i])
+    for (final char value : values) {
+      row.append(value)
           .append(CELL_DELIMITER);
     }
     
@@ -290,10 +289,10 @@ public class CSV implements AutoCloseable {
   /**
    * Adds a row of cells with {@link String}-values. Once added, a row cannot be changed anymore.
    *
-   * @param row Cells with {@link String}-values to use for the new CSV-row
+   * @param values Cells with {@link String}-values to use for the new CSV-row
    * @return {@link CSV}-builder
    *
-   * @throws IOException
+   * @throws IOException If an I/O error occurs
    */
   public CSV addRow(final String[] values) throws IOException {
     return addRow(values, 1);
@@ -302,11 +301,11 @@ public class CSV implements AutoCloseable {
   /**
    * Adds a row of cells with {@link String}-values {@code n} times. Once added, a row cannot be changed anymore.
    *
-   * @param row Cells with {@link String}-values to use for the new CSV-row
-   * @param n   Number of copies of the {@code row}
+   * @param values Cells with {@link String}-values to use for the new CSV-row
+   * @param n      Number of copies of the {@code values}
    * @return {@link CSV}-builder
    *
-   * @throws IOException
+   * @throws IOException If an I/O error occurs
    */
   public CSV addRow(final String[] values, final int n) throws IOException {
     appendRow(Arrays.stream(values), n);
@@ -319,7 +318,7 @@ public class CSV implements AutoCloseable {
    * @param row {@link Row}-builder to use for the new CSV-row
    * @return {@link CSV}-builder
    *
-   * @throws IOException
+   * @throws IOException If an I/O error occurs
    */
   public CSV addRow(final Row row) throws IOException {
     return addRow(row, 1);
@@ -330,10 +329,10 @@ public class CSV implements AutoCloseable {
    * changed anymore.
    *
    * @param row {@link Row}-builder to use for the new CSV-row
-   * @param n   Number of copies of the {@code row}
+   * @param n   Number of copies of the {@code values}
    * @return {@link CSV}-builder
    *
-   * @throws IOException
+   * @throws IOException If an I/O error occurs
    */
   public CSV addRow(final Row row, final int n) throws IOException {
     appendRow(row.build(), n);
@@ -341,11 +340,11 @@ public class CSV implements AutoCloseable {
   }
   
   /**
-   * Alias for {@link #empty())}
+   * Alias for {@link #emptyRow()}
    *
    * @return {@link CSV}-builder
    *
-   * @throws IOException
+   * @throws IOException If an I/O error occurs
    */
   public CSV addRow() throws IOException {
     return emptyRow();
@@ -356,7 +355,7 @@ public class CSV implements AutoCloseable {
    *
    * @return {@link CSV}-builder
    *
-   * @throws IOException
+   * @throws IOException If an I/O error occurs
    */
   public CSV emptyRow() throws IOException {
     return emptyRow(1);
@@ -368,7 +367,7 @@ public class CSV implements AutoCloseable {
    * @param n Number of empty rows.
    * @return {@link CSV}-builder
    *
-   * @throws IOException
+   * @throws IOException If an I/O error occurs
    */
   public CSV emptyRow(final int n) throws IOException {
     appendRow("", n);
@@ -381,7 +380,7 @@ public class CSV implements AutoCloseable {
    * @return {@link CSV}-builder
    *
    * @throws IllegalStateException Thrown when the file was not opened using {@link #open()}.
-   * @throws IOException
+   * @throws IOException           If an I/O error occurs
    */
   public CSV save() throws IOException {
     if (writer == null) {
@@ -402,7 +401,7 @@ public class CSV implements AutoCloseable {
   /**
    * Saves and closes the CSV-file. Note that the file has to be opened again before any further rows can be added.
    *
-   * @throws IOException
+   * @throws IOException If an I/O error occurs
    */
   @Override
   public void close() throws IOException {
@@ -498,7 +497,8 @@ public class CSV implements AutoCloseable {
     
     public static Config defaults() {
       return new Config()
-          .withLang(Lang.ENGLISH)
+          .withLang(Lang.GERMAN)
+          .withOutputDirectory("D:\\Documents\\Dropbox\\FH HGB\\HCC\\Semester 1\\SBV1\\UE\\")
           .withLinebreak("\r\n")
           .withDirectorySeparator("\\")
           .withLoggingEnabled(true);
@@ -575,7 +575,7 @@ public class CSV implements AutoCloseable {
    * Builder for a row in a CSV file.
    *
    * @author Sandro Schmid <sandro.schmid@students.fh-hagenberg.at>
-   * @version 1.0.1
+   * @version 1.0.2
    */
   public class Row {
     
@@ -651,7 +651,7 @@ public class CSV implements AutoCloseable {
      */
     public Row cells(final int[] values) {
       Arrays.stream(values)
-          .forEach(value -> cell(value));
+          .forEach(this::cell);
       return this;
     }
     
@@ -684,7 +684,7 @@ public class CSV implements AutoCloseable {
      */
     public Row cells(final long[] values) {
       Arrays.stream(values)
-          .forEach(value -> cell(value));
+          .forEach(this::cell);
       return this;
     }
     
@@ -717,7 +717,7 @@ public class CSV implements AutoCloseable {
      */
     public Row cells(final double[] values) {
       Arrays.stream(values)
-          .forEach(value -> cell(value));
+          .forEach(this::cell);
       return this;
     }
     
@@ -742,10 +742,10 @@ public class CSV implements AutoCloseable {
      * @return {@link Row}-builder
      */
     public Row floatingPointCell(final double value, final int maxFractionDigits, final int n) {
-      final double formated = new BigDecimal(value)
+      final double formatted = new BigDecimal(value)
           .setScale(maxFractionDigits, BigDecimal.ROUND_HALF_UP)
           .doubleValue();
-      return cell(formated, n);
+      return cell(formatted, n);
     }
     
     /**
@@ -815,10 +815,10 @@ public class CSV implements AutoCloseable {
      * @return {@link Row}-builder
      */
     public Row floatingPointCell(final float value, final int maxFractionDigits, final int n) {
-      final float formated = new BigDecimal(value)
+      final float formatted = new BigDecimal(value)
           .setScale(maxFractionDigits, BigDecimal.ROUND_HALF_UP)
           .floatValue();
-      return cell(formated, n);
+      return cell(formatted, n);
     }
     
     /**
@@ -909,7 +909,7 @@ public class CSV implements AutoCloseable {
      */
     public Row cells(final String[] values) {
       Arrays.stream(values)
-          .forEach(value -> cell(value));
+          .forEach(this::cell);
       return this;
     }
     
@@ -936,11 +936,9 @@ public class CSV implements AutoCloseable {
      * Adds {@code n} empty cells. Once added, a cell cannot be changed anymore.
      *
      * @param n Number of empty cells.
-     * @return {@link Row}-builder
-     *
-     * @throws IOException
+     * @return {@link Row}-builder.
      */
-    public Row empty(final int n) throws IOException {
+    public Row empty(final int n) {
       for (int i = 0; i < n; i++) {
         cell();
       }
