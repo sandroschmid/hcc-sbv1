@@ -77,18 +77,18 @@ public class ImageTransformationFilter {
 		System.out.println("Expectation " + expectation + " Sum "+  Arrays.stream(histogram).sum() + " len " + histogram.length);
 		int consumedPixel = histogram[0];
 		int requiredPixel = expectation; // + consumedPixel;
-		int transformValue = 0;
-		returnTF[0] = transformValue;
+		int nextColor = 0;
+		returnTF[0] = nextColor;
 		for (int i = 1; i < histogram.length; i++) {
 			int histogramValue = histogram[i];
 			consumedPixel += histogramValue;
 			if (histogramValue > expectation / 2) {
-				while (consumedPixel >= requiredPixel) {
-					transformValue++;
+				while (consumedPixel >= requiredPixel && nextColor < maxVal) {
+					nextColor++;
 					requiredPixel += expectation;
 				}
 			}			
-			returnTF[i] = transformValue;
+			returnTF[i] = nextColor;
 						
 //			System.out.println("i " + i + " h[i]" + histogram[i] + " cons " + consumedPixel + " req " + requiredPixel + "  tfV " + transformValue);
 		}
@@ -117,7 +117,7 @@ public class ImageTransformationFilter {
 			consumedPixel += histogram[i];
 			returnTF[i] = nextColor;
 
-			while (consumedPixel >= requiredPixel) {
+			while (consumedPixel >= requiredPixel && nextColor < maxVal) {
 				requiredPixel += expectation;
 				nextColor++;
 			}

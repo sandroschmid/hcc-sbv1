@@ -35,6 +35,13 @@ public class HistogramEqualization_ implements PlugInFilter {
 				continue;
 			}
 			
+//			for (int j = 0; j < tf.length; j++) {
+//				final int tfVal = tf[j];
+//				if (tfVal > 255) {
+//					System.out.println("tf[" + i + "][" + j + "]=" + tfVal);
+//				}
+//			}
+			
 			int[][] resultImg = ImageTransformationFilter.GetTransformedImage(inDataArrInt, width, height, tf);
 			ImageJUtility.showNewImage(resultImg, width, height, "Histogram equalization " + (i + 1));
 		}
