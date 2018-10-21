@@ -146,7 +146,7 @@ public class MedianAsync_ implements PlugInFilter {
           }
           
           Arrays.sort(mask);
-          resultImg[x][y - yMin] = mask[maskSize / 2];
+          resultImg[x][y - yMin] = mask[maskIdx / 2];
         }
       }
       

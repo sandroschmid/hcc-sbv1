@@ -107,7 +107,7 @@ public class Median_ implements PlugInFilter {
         }
         
         Arrays.sort(mask);
-        resultImg[x][y] = mask[maskSize / 2];
+        resultImg[x][y] = mask[maskIdx / 2];
         
         final double avg = Arrays.stream(mask)
             .average()
