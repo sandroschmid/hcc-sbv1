@@ -101,7 +101,7 @@ public class ConvolutionFilter {
     
     final double sigmaPow = sigma * sigma;
     final double fixedPart = 1 / (2 * Math.PI * sigmaPow);
-    final double mu = size / 2;
+    final double mu = size / 2d;
     final double sigmaPowTwice = 2 * sigmaPow;
     
     try (final CSV csv = new CSV("gauss", "UE01\\files")) {
@@ -255,13 +255,8 @@ public class ConvolutionFilter {
   }
   
   /**
-   * Summe aller Maskenelemente = 0 --> g�ltiger Kantendetektor. Frage: Liefert er auch Kanten bei Anwendung durch
+   * Summe aller Maskenelemente = 0 --> gültiger Kantendetektor. Frage: Liefert er auch Kanten bei Anwendung durch
    * Maske?
-   *
-   * @param inputImg
-   * @param width
-   * @param height
-   * @return
    */
   public static double[][] ApplySobelEdgeDetection(double[][] inputImg, int width, int height) {
     double[][] returnImg = new double[width][height];

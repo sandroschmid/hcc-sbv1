@@ -73,7 +73,7 @@ public class ImageTransformationFilter {
     int[] histogram = GetHistogram(maxVal, inImg, width, height);
 //		int[] histogram = new int[] { 100, 50, 0, 5, 100 };
     int expectation = (int) Math.floor(Arrays.stream(histogram)
-        .sum() / histogram.length);
+        .sum() / (double) histogram.length);
     System.out.println("Expectation " + expectation + " Sum " + Arrays.stream(histogram)
         .sum() + " len " + histogram.length);
     int consumedPixel = histogram[0];
@@ -109,7 +109,7 @@ public class ImageTransformationFilter {
     
     int[] histogram = GetHistogram(maxVal, inImg, width, height);
     int expectation = (int) Math.floor((Arrays.stream(histogram)
-                                            .sum() - histogram[0]) / (histogram.length - 1));
+                                            .sum() - histogram[0]) / (double) (histogram.length - 1));
     
     int consumedPixel = 0;
     int requiredPixel = expectation;

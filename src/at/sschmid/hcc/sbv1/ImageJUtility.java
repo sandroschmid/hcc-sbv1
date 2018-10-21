@@ -138,11 +138,6 @@ public class ImageJUtility {
   
   /**
    * (c) Doris
-   *
-   * @param inArr
-   * @param width
-   * @param height
-   * @return
    */
   public static int[] convertFrom2DToIntArr(int[][] inArr, int width, int height) {
     int pixelIdx1D = 0;

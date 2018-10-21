@@ -8,7 +8,6 @@ import ij.process.ImageProcessor;
 
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 
 public class MedianAsync_ implements PlugInFilter {
   
@@ -31,11 +30,11 @@ public class MedianAsync_ implements PlugInFilter {
       try {
         final int[][] resultImgAsync = medianFilterAsync(inDataArrInt, width, height, tgtRadius);
         ImageJUtility.showNewImage(resultImgAsync, width, height, "median image (async)");
-        
-        final Checkerboard checkerboard = new Checkerboard(inDataArrInt, resultImgAsync, width, height);
-        checkerboard.generate();
-        checkerboard.show();
-      } catch (InterruptedException | ExecutionException e) {
+  
+        new Checkerboard(inDataArrInt, resultImgAsync, width, height)
+            .generate()
+            .show();
+      } catch (InterruptedException e) {
         e.printStackTrace();
       }
     });
@@ -54,7 +53,7 @@ public class MedianAsync_ implements PlugInFilter {
   }
   
   private int[][] medianFilterAsync(int[][] inImg, int width, int height, int radius)
-      throws InterruptedException, ExecutionException {
+      throws InterruptedException {
     final long start = System.currentTimeMillis();
     int[][] resultImg = new int[width][height];
     
@@ -63,7 +62,7 @@ public class MedianAsync_ implements PlugInFilter {
         .availableProcessors() * 2;
     final MedianFilterWorker[] workers = new MedianFilterWorker[cores];
     final Thread[] threads = new Thread[cores];
-    final int workerHeight = (int) Math.floor(height / cores);
+    final int workerHeight = (int) Math.floor(height / (double) cores);
     for (int i = 0; i < cores; i++) {
       final MedianFilterWorker worker = new MedianFilterWorker(inImg, width, height, i * workerHeight,
           i * workerHeight + workerHeight, radius);
@@ -75,17 +74,22 @@ public class MedianAsync_ implements PlugInFilter {
     }
     
     // wait for all worker threads to finish
-    for (int i = 0; i < threads.length; i++) {
-      threads[i].join();
+    for (final Thread thread : threads) {
+      thread.join();
     }
     
     // merge partial results
     for (int i = 0; i < workers.length; i++) {
       final int[][] workerResult = workers[i].result;
       for (int x = 0; x < width; x++) {
-        final int yMin = i * workerHeight;
-        for (int y = 0; y < workerHeight; y++) {
-          resultImg[x][yMin + y] = workerResult[x][y];
+//        final int yMin = i * workerHeight;
+//        for (int y = 0; y < workerHeight; y++) {
+//          resultImg[x][yMin + y] = workerResult[x][y];
+//        }
+  
+        if (workerHeight >= 0) {
+          final int yMin = i * workerHeight;
+          System.arraycopy(workerResult[x], 0, resultImg[x], yMin, workerHeight);
         }
       }
     }
