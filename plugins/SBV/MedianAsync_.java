@@ -30,7 +30,7 @@ public class MedianAsync_ implements PlugInFilter {
       try {
         final int[][] resultImgAsync = medianFilterAsync(inDataArrInt, width, height, tgtRadius);
         ImageJUtility.showNewImage(resultImgAsync, width, height, "median image (async)");
-  
+        
         new Checkerboard(inDataArrInt, resultImgAsync, width, height)
             .generate()
             .show();
@@ -86,7 +86,7 @@ public class MedianAsync_ implements PlugInFilter {
 //        for (int y = 0; y < workerHeight; y++) {
 //          resultImg[x][yMin + y] = workerResult[x][y];
 //        }
-  
+        
         if (workerHeight >= 0) {
           final int yMin = i * workerHeight;
           System.arraycopy(workerResult[x], 0, resultImg[x], yMin, workerHeight);

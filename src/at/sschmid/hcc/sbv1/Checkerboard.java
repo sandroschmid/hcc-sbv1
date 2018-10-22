@@ -46,7 +46,7 @@ public class Checkerboard {
           currentImg = currentImg == imgA ? imgB : imgA;
         }
       }
-  
+      
       if (++currentSegWidth >= segmentWidth) {
         currentSegWidth = 0;
         currentImg = currentImg == imgA ? imgB : imgA;

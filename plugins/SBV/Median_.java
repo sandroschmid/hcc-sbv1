@@ -39,7 +39,7 @@ public class Median_ implements PlugInFilter {
         final int[][] inDataArrInt = ImageJUtility.convertFrom1DByteArr(pixels, width, height);
         final int[][] resultImg = medianFilter(inDataArrInt, width, height, tgtRadius, csv);
         ImageJUtility.showNewImage(resultImg, width, height, "median image");
-  
+        
         new Checkerboard(inDataArrInt, resultImg, width, height)
             .generate()
             .show();

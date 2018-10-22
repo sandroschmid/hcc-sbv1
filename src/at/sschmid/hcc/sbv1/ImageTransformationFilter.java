@@ -1,7 +1,5 @@
 package at.sschmid.hcc.sbv1;
 
-import java.util.Arrays;
-
 public class ImageTransformationFilter {
   
   public static int[][] GetTransformedImage(int[][] inImg, int width, int height, int[] transferFunction) {
@@ -72,10 +70,8 @@ public class ImageTransformationFilter {
     
     int[] histogram = GetHistogram(maxVal, inImg, width, height);
 //		int[] histogram = new int[] { 100, 50, 0, 5, 100 };
-    int expectation = (int) Math.floor(Arrays.stream(histogram)
-        .sum() / (double) histogram.length);
-    System.out.println("Expectation " + expectation + " Sum " + Arrays.stream(histogram)
-        .sum() + " len " + histogram.length);
+    int expectation = (int) Math.floor((width * height) / (double) maxVal);
+    System.out.println("Expectation " + expectation + " Sum " + (width * height) + " len " + histogram.length);
     int consumedPixel = histogram[0];
     int requiredPixel = expectation; // + consumedPixel;
     int nextColor = 0;
@@ -108,8 +104,7 @@ public class ImageTransformationFilter {
     int[] returnTF = new int[maxVal + 1];
     
     int[] histogram = GetHistogram(maxVal, inImg, width, height);
-    int expectation = (int) Math.floor((Arrays.stream(histogram)
-                                            .sum() - histogram[0]) / (double) (histogram.length - 1));
+    int expectation = (int) Math.floor((width * height - histogram[0]) / (double) (histogram.length - 1));
     
     int consumedPixel = 0;
     int requiredPixel = expectation;
