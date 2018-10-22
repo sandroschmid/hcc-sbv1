@@ -100,6 +100,9 @@ public class ImageTransformationFilter {
     return returnTF;
   }
   
+  /**
+   * Based on implementation idea from the whiteboard (moving bars from the histogram).
+   */
   public static int[] GetHistogramEqualizationTF2(int maxVal, int[][] inImg, int width, int height) {
     int[] returnTF = new int[maxVal + 1];
     
@@ -143,7 +146,7 @@ public class ImageTransformationFilter {
     }
 //		probabilities[i] = aMax;
     
-    int range = (aMax - aMin); // + 1; // ((aMax - 1) - (aMin + 1)) + 1;
+    int range = aMax - aMin + 1; // ((aMax - 1) - (aMin + 1)) + 1;
     double cumulatedProbability = 0; // probabilities[0];
     returnTF[0] = 0;
     for (i = 1 /*1*/; i < returnTF.length /*- 1*/; i++) {
