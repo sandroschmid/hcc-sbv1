@@ -1,4 +1,4 @@
-package at.sschmid.hcc.sbv1;
+package at.sschmid.hcc.sbv1.image;
 
 public class Checkerboard {
   

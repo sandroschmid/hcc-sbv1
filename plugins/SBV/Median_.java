@@ -1,6 +1,6 @@
-import at.sschmid.hcc.sbv1.CSV;
-import at.sschmid.hcc.sbv1.Checkerboard;
-import at.sschmid.hcc.sbv1.ImageJUtility;
+import at.sschmid.hcc.sbv1.image.Checkerboard;
+import at.sschmid.hcc.sbv1.image.ImageJUtility;
+import at.sschmid.hcc.sbv1.utility.CSV;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;

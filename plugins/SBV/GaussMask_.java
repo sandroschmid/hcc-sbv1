@@ -1,5 +1,5 @@
-import at.sschmid.hcc.sbv1.ConvolutionFilter;
-import at.sschmid.hcc.sbv1.ImageJUtility;
+import at.sschmid.hcc.sbv1.image.ConvolutionFilter;
+import at.sschmid.hcc.sbv1.image.ImageJUtility;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;

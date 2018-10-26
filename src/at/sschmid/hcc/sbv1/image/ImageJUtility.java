@@ -1,4 +1,4 @@
-package at.sschmid.hcc.sbv1;
+package at.sschmid.hcc.sbv1.image;
 
 import ij.ImagePlus;
 import ij.process.ByteProcessor;

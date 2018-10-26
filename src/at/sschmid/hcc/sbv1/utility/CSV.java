@@ -1,4 +1,4 @@
-package at.sschmid.hcc.sbv1;
+package at.sschmid.hcc.sbv1.utility;
 
 import java.io.*;
 import java.math.BigDecimal;
