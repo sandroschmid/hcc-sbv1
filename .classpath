@@ -4,5 +4,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" output="SBV" path="SBV"/>
 	<classpathentry kind="lib" path="D:/Documents/Dropbox/FH HGB/HCC/Semester 1/SBV1/UE/eclipse-workspace/sbvImageJ/ij.jar"/>
+	<classpathentry kind="lib" path="jar/gson-2.8.5.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
