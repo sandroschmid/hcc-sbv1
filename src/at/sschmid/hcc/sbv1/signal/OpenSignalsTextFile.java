@@ -46,7 +46,19 @@ public class OpenSignalsTextFile implements AutoCloseable {
   }
   
   public void read(final String deviceName) throws FileNotFoundException {
+    if (file == null) {
+      throw new IllegalStateException(String.format("File '%s' is not open.", fileName));
+    }
+    
+    if (devices.size() > 1) {
+      throw new RuntimeException("Cannot read measuring points from files with more than one device.");
+    }
+    
     final Device device = devices.get(deviceName);
+    if (device == null) {
+      throw new IllegalArgumentException(String.format("'%s' is not a valid device name.", deviceName));
+    }
+    
     try (final Scanner scanner = new Scanner(new BufferedReader(new FileReader(file)))) {
       String line;
       while (scanner.hasNextLine()) {
@@ -64,15 +76,20 @@ public class OpenSignalsTextFile implements AutoCloseable {
   
   @Override
   public void close() {
+    file = null;
     LOGGER.info("Closed '" + fileName + "'");
   }
   
   @Override
   public String toString() {
-    return getClass().getSimpleName() + " {" +
-        "fileName='" + fileName + '\'' +
-        ", devices.size=" + devices.size() +
-        '}';
+    return new StringBuilder().append(getClass().getSimpleName())
+        .append(" {")
+        .append("fileName='")
+        .append(fileName)
+        .append("', devices.size=")
+        .append(devices.size())
+        .append('}')
+        .toString();
   }
   
   private void parseHeader() throws FileNotFoundException {
@@ -126,12 +143,18 @@ public class OpenSignalsTextFile implements AutoCloseable {
     
     @Override
     public String toString() {
-      return getClass().getSimpleName() + " {" +
-          "name='" + name + '\'' +
-          ", columns=" + Arrays.toString(columns) +
-          ", samplingRate=" + samplingRate +
-          ", measuringPoints.size=" + measuringPoints.size() +
-          '}';
+      return new StringBuilder().append(getClass().getSimpleName())
+          .append(" {")
+          .append("name='")
+          .append(name)
+          .append(", columns=")
+          .append(Arrays.toString(columns))
+          .append(", samplingRate=")
+          .append(samplingRate)
+          .append(", measuringPoints.size=")
+          .append(measuringPoints.size())
+          .append('}')
+          .toString();
     }
     
     public String getName() {
