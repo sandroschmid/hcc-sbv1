@@ -17,7 +17,7 @@ import java.util.stream.Stream;
  */
 public final class CSV implements AutoCloseable {
   
-  private static final Logger LOG = Logger.getLogger(CSV.class.getName());
+  private static final Logger LOG = LoggerFactory.getLogger(CSV.class.getName());
   private static final String CELL_DELIMITER = ";";
   
   /**

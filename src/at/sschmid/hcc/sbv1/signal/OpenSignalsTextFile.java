@@ -1,5 +1,6 @@
 package at.sschmid.hcc.sbv1.signal;
 
+import at.sschmid.hcc.sbv1.utility.LoggerFactory;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -11,7 +12,7 @@ import java.util.regex.Pattern;
 
 public class OpenSignalsTextFile implements AutoCloseable {
   
-  private static final Logger LOGGER = Logger.getLogger(OpenSignalsTextFile.class.getName());
+  private static final Logger LOGGER = LoggerFactory.getLogger(OpenSignalsTextFile.class.getName());
   private static final String EOH = "EndOfHeader";
   
   private final String fileName;

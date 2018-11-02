@@ -1,4 +1,4 @@
-package at.sschmid.hcc.sbv1.signal;
+package at.sschmid.hcc.sbv1.utility;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -13,13 +13,13 @@ import java.util.Map;
 
 public class LineChart extends ApplicationFrame {
   
-  private static final int WIDTH = 1500;
-//  private static final Integer STEP_WIDTH = 30;
+  private static final int WIDTH = 1600;
+//  private static final Integer STEP_WIDTH = 40;
 //  private static final Integer CHART_START = null;
 //  private static final Integer CHART_END = null;
-  private static final Integer STEP_WIDTH = 10;
+private static final Integer STEP_WIDTH = 10;
   private static final Integer CHART_START = 0;
-  private static final Integer CHART_END = 4000;
+  private static final Integer CHART_END = 2000;
   
   private final DefaultCategoryDataset dataSet = new DefaultCategoryDataset();
   private final Map<String, int[]> data;
@@ -29,8 +29,8 @@ public class LineChart extends ApplicationFrame {
     
     this.data = data;
     
-    initFrame();
     initGui(name);
+    initFrame();
 
 //    updateDataSet(dataSet);
     updateDataSetAsync();

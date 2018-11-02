@@ -1,15 +1,23 @@
 package at.sschmid.hcc.sbv1.signal;
 
+import at.sschmid.hcc.sbv1.utility.LineChart;
+import at.sschmid.hcc.sbv1.utility.LoggerFactory;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ECGApp {
   
-  private static final Logger LOGGER = Logger.getLogger(ECGApp.class.getName());
+  private static final Logger LOGGER;
+  static {
+    LoggerFactory.setLevel(Level.OFF);
+    LOGGER = LoggerFactory.getLogger(ECGApp.class.getName());
+  }
   
   private static final String FILES_DIR = "D:\\Documents\\Dropbox\\FH HGB\\HCC\\Semester "
       + "1\\SBV1\\UE\\UE01\\data_ue1_6and1_7\\";
@@ -19,12 +27,13 @@ public class ECGApp {
   
   private static final int VALUES_FOR_BASELINE = 100;
   private static final byte SAMPLE_WIDTH = 25;
-  private static final double PEEK_CHANGE = .25d;
+  private static final double PEEK_CHANGE = .100d;
   
-  private static final byte MEDIAN_FILTER_RADIUS = 15;
+  private static final int MEDIAN_FILTER_RADIUS = 25;
   
   public static void main(final String[] args) {
     new ECGApp(FILES_DIR, ECG);
+//    new ECGApp(FILES_DIR, ECG_MOVEMENT);
   }
   
   private int mean = 0;
@@ -43,15 +52,17 @@ public class ECGApp {
     chartOriginal.put("ECG", charts[0]);
     chartOriginal.put("Mean", means);
     chartOriginal.put("Median", medians);
-    new LineChart(fileName + " - (original)", chartOriginal);
+    chartOriginal.put("Peeks", charts[2]);
+    new LineChart(fileName + " - (normalized original)", chartOriginal);
     
     final Map<String, int[]> chartModified = new HashMap<>();
     chartModified.put("ECG", charts[1]);
+    chartModified.put("Peeks", charts[2]);
     new LineChart(fileName + " - (modified)", chartModified);
   }
   
   private int[][] getChartValues(final String fileName) {
-    int[][] charts = new int[2][0];
+    int[][] charts = new int[3][0];
     try (final OpenSignalsTextFile ostFile = new OpenSignalsTextFile(fileName)) {
       ostFile.open();
       
@@ -89,7 +100,15 @@ public class ECGApp {
 //        charts[1] = sampleBasedBaselineCorrection(device);
 //        charts[1] = medianBaselineCorrection(device);
         charts[1] = meanFilter(charts[0], MEDIAN_FILTER_RADIUS);
-  
+        
+        final int[] peekPositions = findPeekPositions(charts[0]);
+//        LOGGER.info(peekPositions.length + " peeks found.");
+//        for (final int peekPos : peekPositions) {
+//          LOGGER.info("Peek @" + peekPos);
+//        }
+        
+        charts[2] = peekPositions;
+
 //        LOGGER.info(Arrays.stream(charts[1]).mapToObj(String::valueOf).collect(Collectors.joining("; ")));
       }
       
@@ -188,6 +207,58 @@ public class ECGApp {
     }
     
     return correctedValues;
+  }
+  
+  private int[] findPeekPositions(final int[] mps) {
+    final int[] peekPositions = new int[mps.length];
+    
+    int prevSample = -1;
+    boolean peekFound = false;
+    for (int i = 0; i < mps.length; i += SAMPLE_WIDTH) {
+      peekPositions[i] = 0;
+      
+      double sampleSum = .0d;
+      for (int j = i; j < Math.min(i + SAMPLE_WIDTH, mps.length); j++) {
+        sampleSum += mps[j];
+      }
+      
+      final int sample = (int) (sampleSum / (double) mps.length + .5d);
+      
+      if (prevSample > 0 && sample > mean) {
+        final int sampleDiff = sample - prevSample;
+        final double incRatio = sampleDiff / (double) prevSample;
+        if (Math.abs(incRatio) >= PEEK_CHANGE) {
+          if (sampleDiff > 0) { // only positive peeks
+            if (!peekFound) {
+//              peekPositions[i + SAMPLE_WIDTH / 2] = 1000;
+              LOGGER.info("Peek at " + i);
+              peekFound = true;
+            }
+          } else {
+            peekFound = false;
+          }
+        }
+        
+        if (peekFound) {
+          peekPositions[i] = mean / 2;
+        }
+
+//        if (sampleDiff > 0) { // only positive peeks
+//          if (!peekFound) {
+//            if (incRatio >= PEEK_CHANGE) {
+//              peekPositions.add(i + SAMPLE_WIDTH);
+//              peekFound = true;
+//            }
+//          }
+//        } else {
+//          peekFound = false;
+//        }
+      }
+      
+      prevSample = sample;
+    }
+    
+    return peekPositions; // .stream().mapToInt(i -> i).toArray();
   }
   
 }
