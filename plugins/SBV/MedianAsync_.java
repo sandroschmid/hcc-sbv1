@@ -1,70 +1,50 @@
-import at.sschmid.hcc.sbv1.image.Checkerboard;
-import at.sschmid.hcc.sbv1.image.ImageJUtility;
-import ij.IJ;
-import ij.ImagePlus;
+import at.sschmid.hcc.sbv1.image.AbstractUserInputPlugIn;
+import at.sschmid.hcc.sbv1.image.Image;
 import ij.gui.GenericDialog;
-import ij.plugin.filter.PlugInFilter;
-import ij.process.ImageProcessor;
 
 import java.util.Arrays;
-import java.util.Optional;
+import java.util.logging.Logger;
 
-public class MedianAsync_ implements PlugInFilter {
+public final class MedianAsync_ extends AbstractUserInputPlugIn<Integer> {
   
-  public int setup(String arg, ImagePlus imp) {
-    if (arg.equals("about")) {
-      showAbout();
-      return DONE;
+  private static final Logger LOGGER = Logger.getLogger(MedianAsync_.class.getName());
+  private static final int defaultRadius = 4;
+  
+  @Override
+  public void process(final Image image) {
+    try {
+      final Image resultImg = medianFilterAsync(image, input);
+      resultImg.withName(pluginName).show();
+      image.checkerboard(resultImg).show();
+      
+    } catch (InterruptedException e) {
+      e.printStackTrace();
     }
-    return DOES_8G + DOES_STACKS + SUPPORTS_MASKING;
-  } // setup
-  
-  public void run(ImageProcessor ip) {
-    getRadius().ifPresent(tgtRadius -> {
-      final byte[] pixels = (byte[]) ip.getPixels();
-      final int width = ip.getWidth();
-      final int height = ip.getHeight();
-      
-      final int[][] inDataArrInt = ImageJUtility.convertFrom1DByteArr(pixels, width, height);
-      
-      try {
-        final int[][] resultImgAsync = medianFilterAsync(inDataArrInt, width, height, tgtRadius);
-        ImageJUtility.showNewImage(resultImgAsync, width, height, "median image (async)");
-        
-        new Checkerboard(inDataArrInt, resultImgAsync, width, height)
-            .generate()
-            .show();
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
-    });
-  } // run
-  
-  void showAbout() {
-    IJ.showMessage("About Template_...", "Async median filter\n");
-  } // showAbout
-  
-  private Optional<Integer> getRadius() {
-    GenericDialog gd = new GenericDialog("Select a radius");
-    gd.addNumericField("Radius", 4, 0);
-    gd.showDialog();
-    
-    return gd.wasCanceled() ? Optional.empty() : Optional.of((int) gd.getNextNumber());
   }
   
-  private int[][] medianFilterAsync(int[][] inImg, int width, int height, int radius)
+  @Override
+  protected void setupDialog(final GenericDialog dialog) {
+    dialog.addNumericField("Radius", defaultRadius, 0);
+  }
+  
+  @Override
+  protected Integer getInput(final GenericDialog dialog) {
+    return (int) dialog.getNextNumber();
+  }
+  
+  private Image medianFilterAsync(final Image image, final int radius)
       throws InterruptedException {
     final long start = System.currentTimeMillis();
-    int[][] resultImg = new int[width][height];
+    final Image resultImg = new Image(image.width, image.height);
     
     // equally distribute the work to each available cpu-core
     final int cores = Runtime.getRuntime()
         .availableProcessors() * 2;
     final MedianFilterWorker[] workers = new MedianFilterWorker[cores];
     final Thread[] threads = new Thread[cores];
-    final int workerHeight = (int) Math.floor(height / (double) cores);
+    final int workerHeight = (int) Math.floor(image.height / (double) cores);
     for (int i = 0; i < cores; i++) {
-      final MedianFilterWorker worker = new MedianFilterWorker(inImg, width, height, i * workerHeight,
+      final MedianFilterWorker worker = new MedianFilterWorker(image, i * workerHeight,
           i * workerHeight + workerHeight, radius);
       workers[i] = worker;
       
@@ -81,7 +61,7 @@ public class MedianAsync_ implements PlugInFilter {
     // merge partial results
     for (int i = 0; i < workers.length; i++) {
       final int[][] workerResult = workers[i].result;
-      for (int x = 0; x < width; x++) {
+      for (int x = 0; x < image.width; x++) {
 //        final int yMin = i * workerHeight;
 //        for (int y = 0; y < workerHeight; y++) {
 //          resultImg[x][yMin + y] = workerResult[x][y];
@@ -89,19 +69,19 @@ public class MedianAsync_ implements PlugInFilter {
         
         if (workerHeight >= 0) {
           final int yMin = i * workerHeight;
-          System.arraycopy(workerResult[x], 0, resultImg[x], yMin, workerHeight);
+          System.arraycopy(workerResult[x], 0, resultImg.data[x], yMin, workerHeight);
         }
       }
     }
     
-    System.out.println("Median-Filter " + ((System.currentTimeMillis() - start) / 1000.0d) + "s (async)");
+    LOGGER.info("Median-Filter " + ((System.currentTimeMillis() - start) / 1000.0d) + "s (async)");
     
     return resultImg;
   }
   
   private class MedianFilterWorker implements Runnable {
     
-    private final int[][] inImg;
+    private final int[][] image;
     private final int width;
     private final int totalHeight;
     private final int height;
@@ -111,11 +91,10 @@ public class MedianAsync_ implements PlugInFilter {
     
     private int[][] result;
     
-    public MedianFilterWorker(int[][] inImg, int width, int totalHeight, int yMin, int yMax, int radius) {
-      super();
-      this.inImg = inImg;
-      this.width = width;
-      this.totalHeight = totalHeight;
+    public MedianFilterWorker(final Image image, int yMin, int yMax, int radius) {
+      this.image = image.data;
+      this.width = image.width;
+      this.totalHeight = image.height;
       this.yMin = yMin;
       this.yMax = yMax;
       this.radius = radius;
@@ -140,7 +119,7 @@ public class MedianAsync_ implements PlugInFilter {
               int nby = y + yOffset;
               
               if (nbx >= 0 && nbx < width && nby >= 0 && nby < totalHeight) {
-                mask[++maskIdx] = inImg[nbx][nby];
+                mask[++maskIdx] = image[nbx][nby];
               }
             }
           }
@@ -155,4 +134,4 @@ public class MedianAsync_ implements PlugInFilter {
     
   }
   
-} // class MedianAsync_
+}

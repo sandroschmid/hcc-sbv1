@@ -6,12 +6,11 @@ import ij.process.ImageProcessor;
 
 import java.awt.*;
 
-public class ImageJUtility {
+public final class ImageJUtility {
   
   public static int CONVERSION_MODE_RGB_GRAYSCALE_MEAN = 1;
   
   public static int[][] convertFrom1DByteArr(byte[] pixels, int width, int height) {
-    
     int[][] inArray2D = new int[width][height];
     
     int pixelIdx1D = 0;
@@ -28,11 +27,11 @@ public class ImageJUtility {
     return inArray2D;
   }
   
-  public static double[][] convertToDoubleArr2D(int[][] inArr, int width, int height) {
-    double[][] returnArr = new double[width][height];
-    for (int x = 0; x < width; x++) {
-      for (int y = 0; y < height; y++) {
-        returnArr[x][y] = inArr[x][y];
+  public static double[][] convertToDoubleArr2D(final Image image) {
+    double[][] returnArr = new double[image.width][image.height];
+    for (int x = 0; x < image.width; x++) {
+      for (int y = 0; y < image.height; y++) {
+        returnArr[x][y] = image.data[x][y];
       }
     }
     

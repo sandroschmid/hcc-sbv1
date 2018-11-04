@@ -1,70 +1,34 @@
-import at.sschmid.hcc.sbv1.image.Checkerboard;
-import at.sschmid.hcc.sbv1.image.ImageJUtility;
+import at.sschmid.hcc.sbv1.image.AbstractUserInputPlugIn;
+import at.sschmid.hcc.sbv1.image.Image;
 import at.sschmid.hcc.sbv1.utility.CSV;
-import ij.IJ;
-import ij.ImagePlus;
 import ij.gui.GenericDialog;
-import ij.plugin.filter.PlugInFilter;
-import ij.process.ImageProcessor;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Optional;
+import java.util.logging.Logger;
 
-public class Median_ implements PlugInFilter {
-
-//	private static final String STATS_FILE_DIR = "D:\\Documents\\Dropbox\\FH HGB\\HCC\\Semester
-// 1\\SBV1\\UE\\UE01\\median-stats\\";
-
-//	private Writer statsFile;
+public final class Median_ extends AbstractUserInputPlugIn<Integer> {
   
-  public int setup(String arg, ImagePlus imp) {
-    if (arg.equals("about")) {
-      showAbout();
-      return DONE;
-    }
-    return DOES_8G + DOES_STACKS + SUPPORTS_MASKING;
-  } // setup
+  private static final Logger LOGGER = Logger.getLogger(Median_.class.getName());
+  private static final int defaultRadius = 4;
   
-  public void run(ImageProcessor ip) {
-    getRadius().ifPresent(tgtRadius -> {
+  @Override
+  public void process(final Image image) {
+    try (final CSV csv = new CSV("median", "UE01\\files")) {
+      csv.open();
       
-      try (final CSV csv = new CSV("median", "UE01\\files")) {
-        csv.open();
-        
-        final byte[] pixels = (byte[]) ip.getPixels();
-        final int width = ip.getWidth();
-        final int height = ip.getHeight();
-        
-        final int[][] inDataArrInt = ImageJUtility.convertFrom1DByteArr(pixels, width, height);
-        final int[][] resultImg = medianFilter(inDataArrInt, width, height, tgtRadius, csv);
-        ImageJUtility.showNewImage(resultImg, width, height, "median image");
-        
-        new Checkerboard(inDataArrInt, resultImg, width, height)
-            .generate()
-            .show();
-        
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    });
-  } // run
-  
-  public void showAbout() {
-    IJ.showMessage("About Template_...", "Median filter\n");
-  } // showAbout
-  
-  private Optional<Integer> getRadius() {
-    GenericDialog gd = new GenericDialog("Select a radius");
-    gd.addNumericField("Radius", 4, 0);
-    gd.showDialog();
-    
-    return gd.wasCanceled() ? Optional.empty() : Optional.of((int) gd.getNextNumber());
+      final Image resultImg = medianFilter(image, input, csv);
+      addResult(resultImg, pluginName);
+      addResult(image.checkerboard(resultImg));
+      
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
   
-  private int[][] medianFilter(int[][] inImg, int width, int height, int radius, CSV csv) throws IOException {
+  private Image medianFilter(final Image image, final int radius, final CSV csv) throws IOException {
     final long start = System.currentTimeMillis();
-    final int[][] resultImg = new int[width][height];
+    final Image resultImg = new Image(image.width, image.height);
     final int maskWidth = 2 * radius + 1;
     final int maskSize = maskWidth * maskWidth;
     
@@ -91,8 +55,8 @@ public class Median_ implements PlugInFilter {
         .cell(maskLabel));
     
     int[] mask;
-    for (int x = 0; x < width; x++) {
-      for (int y = 0; y < height; y++) {
+    for (int x = 0; x < image.width; x++) {
+      for (int y = 0; y < image.height; y++) {
         int maskIdx = -1;
         mask = new int[maskSize];
         for (int xOffset = -radius; xOffset <= radius; xOffset++) {
@@ -100,14 +64,14 @@ public class Median_ implements PlugInFilter {
             int nbx = x + xOffset;
             int nby = y + yOffset;
             
-            if (nbx >= 0 && nbx < width && nby >= 0 && nby < height) {
-              mask[++maskIdx] = inImg[nbx][nby];
+            if (nbx >= 0 && nbx < image.width && nby >= 0 && nby < image.height) {
+              mask[++maskIdx] = image.data[nbx][nby];
             }
           }
         }
         
         Arrays.sort(mask);
-        resultImg[x][y] = mask[maskIdx / 2];
+        resultImg.data[x][y] = mask[maskIdx / 2];
         
         final double avg = Arrays.stream(mask)
             .average()
@@ -123,8 +87,8 @@ public class Median_ implements PlugInFilter {
                 .append(y)
                 .append("]")
                 .toString())
-            .cell(inImg[x][y])
-            .cell(resultImg[x][y])
+            .cell(image.data[x][y])
+            .cell(resultImg.data[x][y])
             .floatingPointCell(avg, 3)
             .floatingPointCell(stdDev, 3)
             .cell(mask[0])
@@ -137,10 +101,20 @@ public class Median_ implements PlugInFilter {
                 .toArray()));
       }
     }
-    
-    System.out.println("Median-Filter " + ((System.currentTimeMillis() - start) / 1000.0d) + "s");
+  
+    LOGGER.info(String.format("Median-Filter %ss", (System.currentTimeMillis() - start) / 1000d));
     
     return resultImg;
+  }
+  
+  @Override
+  protected void setupDialog(final GenericDialog dialog) {
+    dialog.addNumericField("Radius", defaultRadius, 0);
+  }
+  
+  @Override
+  protected Integer getInput(final GenericDialog dialog) {
+    return (int) dialog.getNextNumber();
   }
   
 } // class Median_

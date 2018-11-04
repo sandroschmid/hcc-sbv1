@@ -1,55 +1,27 @@
-import at.sschmid.hcc.sbv1.image.ImageJUtility;
-import at.sschmid.hcc.sbv1.image.ImageTransformationFilter;
-import ij.IJ;
-import ij.ImagePlus;
-import ij.plugin.filter.PlugInFilter;
-import ij.process.ImageProcessor;
+import at.sschmid.hcc.sbv1.image.AbstractPlugIn;
+import at.sschmid.hcc.sbv1.image.Image;
+import at.sschmid.hcc.sbv1.image.ImageTransferFunctions;
 
-public class HistogramEqualization_ implements PlugInFilter {
+public final class HistogramEqualization_ extends AbstractPlugIn {
   
-  public int setup(String arg, ImagePlus imp) {
-    if (arg.equals("about")) {
-      showAbout();
-      return DONE;
-    }
-    return DOES_8G + DOES_STACKS + SUPPORTS_MASKING;
-  } // setup
-  
-  public void run(ImageProcessor ip) {
-    byte[] pixels = (byte[]) ip.getPixels();
-    int width = ip.getWidth();
-    int height = ip.getHeight();
-    
-    int[][] inDataArrInt = ImageJUtility.convertFrom1DByteArr(pixels, width, height);
-    
+  public void process(final Image image) {
     int[][] tfs = new int[5][];
-    tfs[0] = ImageTransformationFilter.GetHistogramEqualizationTF(255, inDataArrInt, width, height);
-    tfs[1] = ImageTransformationFilter.GetHistogramEqualizationTF2(255, inDataArrInt, width, height);
-    tfs[2] = ImageTransformationFilter.GetHistogramEqualizationTF3(255, inDataArrInt, width, height);
-    tfs[3] = ImageTransformationFilter.GetHistogramEqualizationTF4(255, inDataArrInt, width, height);
-    tfs[4] = ImageTransformationFilter.GetHistogramEqualizationTF5(255, inDataArrInt, width, height);
+    tfs[0] = ImageTransferFunctions.GetHistogramEqualizationTF(image);
+    tfs[1] = ImageTransferFunctions.GetHistogramEqualizationTF2(image);
+    tfs[2] = ImageTransferFunctions.GetHistogramEqualizationTF3(image);
+    tfs[3] = ImageTransferFunctions.GetHistogramEqualizationTF4(image);
+    tfs[4] = ImageTransferFunctions.GetHistogramEqualizationTF5(image);
     
     for (int i = 0; i < tfs.length; i++) {
       int[] tf = tfs[i];
       if (tf == null) {
         continue;
       }
-
-//			for (int j = 0; j < tf.length; j++) {
-//				final int tfVal = tf[j];
-//				if (tfVal > 255) {
-//					System.out.println("tf[" + i + "][" + j + "]=" + tfVal);
-//				}
-//			}
-      
-      int[][] resultImg = ImageTransformationFilter.GetTransformedImage(inDataArrInt, width, height, tf);
-      ImageJUtility.showNewImage(resultImg, width, height, "Histogram equalization " + (i + 1));
+  
+      final Image resultImg = image.transformation().transfer(tf).getResult();
+      addResult(resultImg, String.format("%s #%d", pluginName, i + 1));
     }
     
-  } // run
+  }
   
-  void showAbout() {
-    IJ.showMessage("About Template_...", "Histogram equalization\n");
-  } // showAbout
-  
-} //class HistogramEqualization_
+}

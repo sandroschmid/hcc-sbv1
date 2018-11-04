@@ -4,7 +4,7 @@ import at.sschmid.hcc.sbv1.utility.CSV;
 
 import java.io.IOException;
 
-public class ConvolutionFilter {
+public final class ConvolutionFilter {
   
   public static double[][] ConvolveDoubleNorm(double[][] inputImg, int width, int height, double[][] kernel,
                                               int radius, int numOfIterations) {

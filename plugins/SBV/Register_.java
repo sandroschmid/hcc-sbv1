@@ -1,38 +1,31 @@
-import at.sschmid.hcc.sbv1.image.ImageJUtility;
+import at.sschmid.hcc.sbv1.image.AbstractUserInputPlugIn;
+import at.sschmid.hcc.sbv1.image.Image;
 import at.sschmid.hcc.sbv1.image.ImageTransform;
-import ij.IJ;
-import ij.ImagePlus;
-import ij.plugin.filter.PlugInFilter;
-import ij.process.ImageProcessor;
+import at.sschmid.hcc.sbv1.image.Transformation;
+import ij.gui.GenericDialog;
 
-public class Register_ implements PlugInFilter {
+public final class Register_ extends AbstractUserInputPlugIn<Transformation> {
   
-  public int setup(String arg, ImagePlus imp) {
-    if (arg.equals("about")) {
-      showAbout();
-      return DONE;
-    }
-    return DOES_8G + DOES_STACKS + SUPPORTS_MASKING;
-  } // setup
+  private static final Transformation defaults = new Transformation(3.1416, -9.9999, 31.7465);
   
-  public void run(ImageProcessor ip) {
-    final byte[] pixels = (byte[]) ip.getPixels();
-    final int width = ip.getWidth();
-    final int height = ip.getHeight();
+  @Override
+  public void process(final Image image) {
+    final ImageTransform imageTransform = new ImageTransform(image);
+    final Image transformedImage = imageTransform.transform(input).getResult();
     
-    final int[][] inDataArrInt = ImageJUtility.convertFrom1DByteArr(pixels, width, height);
-    
-    final ImageTransform imageTransform = new ImageTransform(inDataArrInt, width, height);
-//    final ImageTransform.Transformation transformation = new ImageTransform.Transformation(30, -59, 0);
-    final ImageTransform.Transformation transformation = new ImageTransform.Transformation(3.14159, -9.9999, 31.7465);
-    final ImageTransform.Image result = imageTransform.transform(transformation).getResult();
-    
-    ImageJUtility.showNewImage(result.data, width, height, "transformed image");
-    
-  } // run
+    addResult(transformedImage, String.format("%s - transformed image", pluginName));
+  }
   
-  void showAbout() {
-    IJ.showMessage("About Template_...", "this is a PluginFilter template\n");
-  } // showAbout
+  @Override
+  protected void setupDialog(final GenericDialog dialog) {
+    dialog.addNumericField("Translate X", defaults.translationX, 4);
+    dialog.addNumericField("Translate Y", defaults.translationY, 4);
+    dialog.addNumericField("Rotation", defaults.rotation, 4);
+  }
+  
+  @Override
+  protected Transformation getInput(final GenericDialog dialog) {
+    return new Transformation(dialog.getNextNumber(), dialog.getNextNumber(), dialog.getNextNumber());
+  }
   
 }

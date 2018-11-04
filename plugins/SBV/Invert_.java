@@ -1,37 +1,15 @@
-import at.sschmid.hcc.sbv1.image.ImageJUtility;
-import at.sschmid.hcc.sbv1.image.ImageTransformationFilter;
-import ij.IJ;
-import ij.ImagePlus;
-import ij.plugin.filter.PlugInFilter;
-import ij.process.ImageProcessor;
+import at.sschmid.hcc.sbv1.image.AbstractPlugIn;
+import at.sschmid.hcc.sbv1.image.Image;
+import at.sschmid.hcc.sbv1.image.ImageTransferFunctions;
 
-public class Invert_ implements PlugInFilter {
+public final class Invert_ extends AbstractPlugIn {
   
-  public int setup(String arg, ImagePlus imp) {
-    if (arg.equals("about")) {
-      showAbout();
-      return DONE;
-    }
-    return DOES_8G + DOES_STACKS + SUPPORTS_MASKING;
-  } // setup
+  @Override
+  protected void process(final Image image) {
+    final int[] invertTF = ImageTransferFunctions.GetInversionTF(255);
+    final Image resultImg = image.transformation().transfer(invertTF).getResult();
   
-  public void run(ImageProcessor ip) {
-    byte[] pixels = (byte[]) ip.getPixels();
-    int width = ip.getWidth();
-    int height = ip.getHeight();
-    
-    int[][] inDataArrInt = ImageJUtility.convertFrom1DByteArr(pixels, width, height);
-    
-    // implement image inversion
-    System.out.println("w=" + width + " h=" + height + " array[10,20]=" + inDataArrInt[10][20]);
-    int[] invertTF = ImageTransformationFilter.GetInversionTF(255);
-    int[][] resultImg = ImageTransformationFilter.GetTransformedImage(inDataArrInt, width, height, invertTF);
-    
-    ImageJUtility.showNewImage(resultImg, width, height, "inverted image");
-  } // run
+    addResult(resultImg, pluginName);
+  }
   
-  void showAbout() {
-    IJ.showMessage("About Template_...", "Invert image colors\n");
-  } // showAbout
-  
-} //class Invert_
+}
