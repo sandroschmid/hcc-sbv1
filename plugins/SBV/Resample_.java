@@ -1,8 +1,5 @@
-import at.sschmid.hcc.sbv1.image.AbstractUserInputPlugIn;
-import at.sschmid.hcc.sbv1.image.Image;
 import at.sschmid.hcc.sbv1.image.Checkerboard;
 import at.sschmid.hcc.sbv1.image.ImageJUtility;
-
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
@@ -51,8 +48,8 @@ public final class Resample_ extends AbstractUserInputPlugIn<Double> {
         double newY = y / scaleFactorY;
       
         // forward mapping: use x/y coords instead of newX/newY
-        int nnVal = getNNInterpolatedValue(inDataArrInt, width,	height,	newX, newY);
-        int biLinVal = getBiLinInterpolatedValue(inDataArrInt, width, height, newX, newY);
+        int nnVal = getNNInterpolatedValue(image,	newX, newY);
+        int biLinVal = getBiLinInterpolatedValue(image, newX, newY);
       
         // forward mapping
 //		int roundedNewX = (int)(newX + 0.5);
@@ -85,35 +82,30 @@ public final class Resample_ extends AbstractUserInputPlugIn<Double> {
   }
   
   private int getNNInterpolatedValue(final Image image, final double x, final double y) {
-    int xPos = (int) (x + 0.5);
-    int yPos = (int) (y + 0.5);
-    
-    return getRawValue(image, xPos, yPos);
+    return getRawValue(image, new Point((int) (x + 0.5), (int) (y + 0.5)));
   }
   
   private int getBiLinInterpolatedValue(final Image image, double x, double y) {
     // How to get the 4 coords for e.g (3.7, 12.2)
-    // P0: (3,12) P1: (4,12), P2: (3, 13), P3: (4,13)
-    final int startX = (int) x; // floor
-    final int startY = (int) y;
+    // P0: (3;12) P1: (4;12), P2: (3;13), P3: (4;13)
+    final Point p0 = new Point((int) x, (int) y);
+    final Point p1 = new Point(p0.x, p0.y + 1);
+    final Point p2 = new Point(p0.x + 1, p0.y);
+    final Point p3 = new Point(p0.x + 1, p0.y + 1);
 
-    final double xPercent = x - startX; // decimal parts
-    final double yPercent = y - startY;
-    
-    final int interpolation1Start = getRawValue(image, startX, startY);
-    final int interpolation1End = getRawValue(image, startX + 1, startY);
-    final int interpolation1Diff = Math.abs(interpolation1End - interpolation1Start);
-    final double interpolation1Val = interpolation1Start + xPercent * interpolation1Diff;
+    final double xPercentage = x - p0.x;
+    final double yPercentage = y - p0.y;
 
-    final int interpolation2Start = getRawValue(image, startX, startY + 1);
-    final int interpolation2End = getRawValue(image, startX + 1, startY + 1);
-    final int interpolation2Diff = Math.abs(interpolation2End - interpolation2Start);
-    final double interpolation2Val = interpolation2Start + xPercent * interpolation2Diff;
-  
-    final double interpolation3Diff = Math.abs(interpolation2Val - interpolation1Val);
-    final double interpolation3Val = interpolation1Val + yPercent * interpolation3Diff;
+    final int p0Color = getRawValue(image, p0);
+    final int p1Color = getRawValue(image, p1);
+    final int p2Color = getRawValue(image, p2);
+    final int p3Color = getRawValue(image, p3);
     
-    return (int) (interpolation3Val + 0.5);
+    final double interpolatedColor1 = p0Color + xPercentage * (p1Color - p0Color);
+    final double interpolatedColor2 = p2Color + xPercentage * (p3Color - p2Color);
+    final double interpolatedColor3 = interpolatedColor1 + yPercentage * (interpolatedColor2 - interpolatedColor1);
+    
+    return (int) interpolatedColor3;
   }
 
   private int getRawValue(final Image image, int x, int y) {
