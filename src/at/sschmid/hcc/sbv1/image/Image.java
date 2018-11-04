@@ -69,12 +69,16 @@ public final class Image {
     return new Histogram(this);
   }
   
-  public ImageTransform transformation() {
-    return new ImageTransform(this);
+  public ImageTransformation transformation() {
+    return new ImageTransformation(this);
   }
   
   public Checkerboard checkerboard(final Image other) {
     return new Checkerboard(this, other);
+  }
+  
+  public ImageCalculation calculation(final Image other) {
+    return new ImageCalculation(this, other);
   }
   
   public boolean sizeEqualsTo(final Image other) {

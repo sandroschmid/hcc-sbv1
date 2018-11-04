@@ -54,6 +54,14 @@ public abstract class AbstractPlugIn implements PlugInFilter {
     results.add(image.withName(name));
   }
   
+  protected final void addResult(final ImageTransformation transformation) {
+    addResult(transformation.getResult());
+  }
+  
+  protected final void addResult(final ImageTransformation transformation, final String name) {
+    addResult(transformation.getResult(), name);
+  }
+  
   protected final void addResult(final Checkerboard checkerboard) {
     addResult(checkerboard.generate());
   }
