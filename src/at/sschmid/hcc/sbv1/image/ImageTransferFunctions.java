@@ -55,7 +55,7 @@ public final class ImageTransferFunctions {
 //		}
 
 //		int expectation = (int) Math.floor(width * height / 256.0d);
-        
+    
     int[] histogram = image.histogram().getData();
 //		int[] histogram = new int[] { 100, 50, 0, 5, 100 };
     int expectation = (int) Math.floor((image.width * image.height) / (double) image.maxColor);
