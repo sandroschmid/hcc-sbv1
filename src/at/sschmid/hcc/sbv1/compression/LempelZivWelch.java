@@ -23,6 +23,7 @@ public final class LempelZivWelch {
   private final List<Integer> result = new LinkedList<>();
   
   private int maxTranslation = DICT_START;
+  private Map<Integer, String> invertedDictionary;
   
   private LempelZivWelch(final String input) {
     this.input = input;
@@ -45,10 +46,7 @@ public final class LempelZivWelch {
   }
   
   public String getDecodedResult() {
-    final Map<Integer, String> invertedDictionary = dictionary.entrySet()
-        .stream()
-        .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
-    
+    buildInvertedDictionary();
     return result.stream()
         .map(v -> v < DICT_START ? String.valueOf((char) (int) v) : invertedDictionary.get(v))
         .collect(Collectors.joining());
@@ -73,9 +71,33 @@ public final class LempelZivWelch {
           .addRow(csv.row().cell(String.format("RESULT (%d):", resultLength)).cell(getResult()))
           .addRow(csv.row()
               .cell("CR:")
-              .cell(String.format("1 / (%d / %d) = %.3f", resultLength, inputLength, getCompressionRatio())))
-          .emptyRow();
-      
+              .cell(String.format("1 / (%d / %d) = %.3f", resultLength, inputLength, getCompressionRatio())));
+  
+      if (!steps.isEmpty()) {
+        csv.emptyRow()
+            .addRow(csv.row().cell(String.format("%d STEPS:", steps.size())))
+            .addRow(csv.row()
+                .cell("Symbol Index")
+                .cell("Current Symbol")
+                .cell("Next Symbol")
+                .cell("Words")
+                .cell("Dictionary")
+                .cell("Result"));
+    
+        for (final Step step : steps) {
+          csv.addRow(csv.row()
+              .cell(step.symbolIndex)
+              .cell(step.currentSymbol)
+              .cell(step.nextSymbol == null ? "<none>" : String.valueOf(step.nextSymbol))
+              .cell(step.words.isEmpty() ? "<empty>" : String.join(", ", step.words))
+              .cell(step.dictionaryWord == null
+                  ? "<none>"
+                  : String.format("%s <%d>", step.dictionaryWord, dictionary.get(step.dictionaryWord)))
+              .cell(String.format("%s <%d>", step.output.getKey(), step.output.getValue())));
+        }
+      }
+  
+      csv.emptyRow();
       if (dictionary.isEmpty()) {
         csv.addRow(csv.row().cell("Dictionary is empty."));
       } else {
@@ -88,29 +110,19 @@ public final class LempelZivWelch {
           csv.addRow(csv.row().cell(entry.getValue()).cell(entry.getKey()));
         }
       }
-      
-      if (!steps.isEmpty()) {
-        csv.emptyRow()
-            .addRow(csv.row().cell(String.format("%d STEPS:", steps.size())))
-            .addRow(csv.row()
-                .cell("Symbol Index")
-                .cell("Current Symbol")
-                .cell("Upcoming Symbol")
-                .cell("Words")
-                .cell("Add to dictionary")
-                .cell("Add to result"));
-        
-        for (final Step step : steps) {
-          csv.addRow(csv.row()
-              .cell(step.symbolIndex)
-              .cell(step.currentSymbol)
-              .cell(step.upcomingSymbol == null ? "<none>" : String.valueOf(step.upcomingSymbol))
-              .cell(step.words.isEmpty() ? "<empty>" : String.join(", ", step.words))
-              .cell(step.dictionaryWord == null
-                  ? "<none>"
-                  : String.format("%s <%d>", step.dictionaryWord, dictionary.get(step.dictionaryWord)))
-              .cell(String.format("%s <%d>", step.output.getKey(), step.output.getValue())));
+  
+      buildInvertedDictionary();
+      csv.emptyRow()
+          .addRow(csv.row().cell("RESULT:"))
+          .addRow(csv.row().cell("Output").cell("Translation"));
+      for (final int value : result) {
+        final CSV.Row row = csv.row().cell(value);
+        if (value < DICT_START) {
+          row.cell((char) value);
+        } else {
+          row.cell(invertedDictionary.get(value));
         }
+        csv.addRow(row);
       }
     }
   }
@@ -122,34 +134,34 @@ public final class LempelZivWelch {
     
     final int inputLength = input.length();
     for (int i = 0; i < inputLength; i++) {
-      int nextCharIndex = i;
-      final char currentSymbol = input.charAt(nextCharIndex++);
+      int nextSymbolIndex = i;
+      final char currentSymbol = input.charAt(nextSymbolIndex++);
       int output = (int) currentSymbol;
-      
-      if (nextCharIndex == inputLength) {
+  
+      if (nextSymbolIndex == inputLength) {
         // already at last character in input string
         steps.add(new StepBuilder(i, currentSymbol).build());
         result.add(output);
         continue;
       }
   
-      final char upcomingSymbol = input.charAt(nextCharIndex++);
-      final StepBuilder step = new StepBuilder(i, currentSymbol, upcomingSymbol);
+      final char nextSymbol = input.charAt(nextSymbolIndex++);
+      final StepBuilder step = new StepBuilder(i, currentSymbol, nextSymbol);
   
       String word = null;
       int translation = -1;
-      String nextWord = String.format("%s%s", currentSymbol, upcomingSymbol);
+      String nextWord = String.format("%s%s", currentSymbol, nextSymbol);
       step.addWord(nextWord);
       Integer nextTranslation = dictionary.get(nextWord);
       while (nextTranslation != null && i < inputLength) {
         word = nextWord;
         step.addWord(nextWord);
         translation = nextTranslation;
-        if (nextCharIndex < inputLength) {
-          nextWord += String.valueOf(input.charAt(nextCharIndex++));
+        if (nextSymbolIndex < inputLength) {
+          nextWord += String.valueOf(input.charAt(nextSymbolIndex++));
           nextTranslation = dictionary.get(nextWord);
         }
-        i++; // skip upcoming characters included in used translation
+        i++; // skip next characters included in used translation
       }
   
       if (!dictionary.containsKey(nextWord)) {
@@ -170,24 +182,32 @@ public final class LempelZivWelch {
     }
   }
   
+  private void buildInvertedDictionary() {
+    if (invertedDictionary == null) {
+      invertedDictionary = dictionary.entrySet()
+          .stream()
+          .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+    }
+  }
+  
   public class Step {
     
     private final int symbolIndex;
     private final char currentSymbol;
-    private final Character upcomingSymbol;
+    private final Character nextSymbol;
     private final SortedSet<String> words;
     private final String dictionaryWord;
-    private Map.Entry<String, Integer> output;
+    private final Map.Entry<String, Integer> output;
     
     public Step(final int symbolIndex,
                 final char currentSymbol,
-                final Character upcomingSymbol,
+                final Character nextSymbol,
                 final SortedSet<String> words,
                 final String dictionaryWord,
                 final Map.Entry<String, Integer> output) {
       this.symbolIndex = symbolIndex;
       this.currentSymbol = currentSymbol;
-      this.upcomingSymbol = upcomingSymbol;
+      this.nextSymbol = nextSymbol;
       this.words = words;
       this.dictionaryWord = dictionaryWord;
       this.output = output;
@@ -199,8 +219,9 @@ public final class LempelZivWelch {
     
     private final int symbolIndex;
     private final char currentSymbol;
-    private final Character upcomingSymbol;
+    private final Character nextSymbol;
     private final SortedSet<String> words = new TreeSet<>(Comparator.comparingInt(String::length));
+  
     private String dictionaryWord;
     private Map.Entry<String, Integer> output;
     
@@ -208,11 +229,11 @@ public final class LempelZivWelch {
       this(symbolIndex, currentSymbol, null);
       setOutput(String.valueOf(currentSymbol), (int) currentSymbol);
     }
-    
-    public StepBuilder(final int symbolIndex, final char currentSymbol, final Character upcomingSymbol) {
+  
+    public StepBuilder(final int symbolIndex, final char currentSymbol, final Character nextSymbol) {
       this.symbolIndex = symbolIndex;
       this.currentSymbol = currentSymbol;
-      this.upcomingSymbol = upcomingSymbol;
+      this.nextSymbol = nextSymbol;
     }
     
     public void addWord(final String word) {
@@ -228,7 +249,7 @@ public final class LempelZivWelch {
     }
     
     public Step build() {
-      return new Step(symbolIndex, currentSymbol, upcomingSymbol, words, dictionaryWord, output);
+      return new Step(symbolIndex, currentSymbol, nextSymbol, words, dictionaryWord, output);
     }
     
   }

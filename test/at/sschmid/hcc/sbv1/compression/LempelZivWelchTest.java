@@ -80,6 +80,52 @@ public class LempelZivWelchTest {
         zip.getDictionary());
   }
   
+  @Test
+  public void encoding4() {
+    final StringBuilder inputBuilder = new StringBuilder();
+    final int iz = (int) 'z';
+    for (int i = (int) 'a'; i <= iz; i++) {
+      inputBuilder.append((char) i);
+    }
+    
+    final String input = inputBuilder.toString();
+    final LempelZivWelch zip = LempelZivWelch.encode(input);
+    
+    csv(zip, "encoding-abc");
+    
+    final int resultSize = zip.getResultSize();
+    final double compressionRatio = zip.getCompressionRatio();
+    
+    Assert.assertEquals(resultSize, zip.getSteps().size());
+    Assert.assertEquals(26, resultSize);
+    Assert.assertEquals(input, zip.getDecodedResult());
+    Assert.assertEquals(1, compressionRatio, 0);
+    Assert.assertEquals(input.length(), (int) (resultSize * compressionRatio));
+  }
+  
+  @Test
+  public void encoding5() {
+    final StringBuilder inputBuilder = new StringBuilder();
+    final int length = 26; // cr15=3 (best usage of dict) | cr16=2.6 | cr26=3.7 | cr28=4 (best usage of dict)
+    for (int i = 0; i < length; i++) {
+      inputBuilder.append('a');
+    }
+    
+    final String input = inputBuilder.toString();
+    final LempelZivWelch zip = LempelZivWelch.encode(input);
+    
+    csv(zip, String.format("encoding-a%d", length));
+    
+    final int resultSize = zip.getResultSize();
+    final double compressionRatio = zip.getCompressionRatio();
+    
+    Assert.assertEquals(resultSize, zip.getSteps().size());
+    Assert.assertEquals(7, resultSize);
+    Assert.assertEquals(input, zip.getDecodedResult());
+    Assert.assertEquals(3.714, compressionRatio, 0.001);
+    Assert.assertEquals(input.length(), (int) (resultSize * compressionRatio));
+  }
+  
   private void csv(final LempelZivWelch zip, final String fileNameSuffix) {
     if (!CSV) {
       return;
