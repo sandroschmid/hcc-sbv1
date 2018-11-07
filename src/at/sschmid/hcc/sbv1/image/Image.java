@@ -7,7 +7,7 @@ public final class Image {
   
   private static int totalImages = 0;
   
-  public final int maxColor = DEFAULT_MAX_COLOR;
+  public final int maxColor;
   public final int[][] data;
   public final int width;
   public final int height;
@@ -18,7 +18,7 @@ public final class Image {
   private final int imageCount;
   
   public Image(final Image image) {
-    this(image.name, new int[image.width][image.height], image.width, image.height);
+    this(image.name, null, image.width, image.height, image.maxColor);
     
     for (int x = 0; x < image.width; x++) {
       if (image.height >= 0) {
@@ -40,7 +40,12 @@ public final class Image {
   }
   
   public Image(final String name, final int[][] data, final int width, final int height) {
+    this(name, data, width, height, DEFAULT_MAX_COLOR);
+  }
+  
+  public Image(final String name, final int[][] data, final int width, final int height, final int maxColor) {
     this.imageCount = ++totalImages;
+    this.maxColor = maxColor;
     this.name = name;
     this.data = data == null ? new int[width][height] : data;
     this.width = width;

@@ -20,6 +20,16 @@ public final class ImageTransformation {
     }
   }
   
+  public Image invert() {
+    final Image result = new Image(image);
+    for (int x = 0; x < result.width; x++) {
+      for (int y = 0; y < result.height; y++) {
+        result.data[x][y] = image.maxColor - result.data[x][y];
+      }
+    }
+    return result;
+  }
+  
   public ImageTransformation transfer(final int[] transferFunction) {
     final Image result = new Image(image.width, image.height);
     for (int x = 0; x < image.width; x++) {
