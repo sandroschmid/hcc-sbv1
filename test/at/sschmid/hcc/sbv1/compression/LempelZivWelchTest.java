@@ -3,12 +3,14 @@ package at.sschmid.hcc.sbv1.compression;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class LempelZivWelchTest {
   
   private static final Logger LOGGER;
+  private static final boolean CSV = false;
   
   static {
     LOGGER = Logger.getLogger(LempelZivWelchTest.class.getName());
@@ -19,10 +21,13 @@ public class LempelZivWelchTest {
   public void encoding1() {
     final String input = "ababbbaab";
     final LempelZivWelch zip = LempelZivWelch.encode(input);
+  
+    csv(zip, "encoding1");
     
     final int resultSize = zip.getResultSize();
     final double compressionRatio = zip.getCompressionRatio();
-    
+  
+    Assert.assertEquals(resultSize, zip.getSteps().size());
     Assert.assertEquals("97|98|256|98|257|256", zip.getResult());
     Assert.assertEquals(6, resultSize);
     Assert.assertEquals(input, zip.getDecodedResult());
@@ -35,10 +40,13 @@ public class LempelZivWelchTest {
   public void encoding2() {
     final String input = "ababbbaabbcdcdcdcabbc";
     final LempelZivWelch zip = LempelZivWelch.encode(input);
+  
+    csv(zip, "encoding2");
     
     final int resultSize = zip.getResultSize();
     final double compressionRatio = zip.getCompressionRatio();
-    
+  
+    Assert.assertEquals(resultSize, zip.getSteps().size());
     Assert.assertEquals("97|98|256|98|257|258|99|100|262|264|261", zip.getResult());
     Assert.assertEquals(11, resultSize);
     Assert.assertEquals(input, zip.getDecodedResult());
@@ -54,10 +62,13 @@ public class LempelZivWelchTest {
   public void encoding3() {
     final String input = "abababbbaaaabababccddda";
     final LempelZivWelch zip = LempelZivWelch.encode(input);
+  
+    csv(zip, "encoding3");
     
     final int resultSize = zip.getResultSize();
     final double compressionRatio = zip.getCompressionRatio();
-    
+  
+    Assert.assertEquals(resultSize, zip.getSteps().size());
     Assert.assertEquals("97|98|256|256|98|257|97|262|257|264|99|99|100|268|97", zip.getResult());
     Assert.assertEquals(15, resultSize);
     Assert.assertEquals(input, zip.getDecodedResult());
@@ -67,6 +78,18 @@ public class LempelZivWelchTest {
         "ab <256>, ba <257>, aba <258>, abb <259>, bb <260>, baa <261>, aa <262>, aab <263>, bab <264>"
             + ", babc <265>, cc <266>, cd <267>, dd <268>, dda <269>",
         zip.getDictionary());
+  }
+  
+  private void csv(final LempelZivWelch zip, final String fileNameSuffix) {
+    if (!CSV) {
+      return;
+    }
+    
+    try {
+      zip.csv(fileNameSuffix);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
   
 }
