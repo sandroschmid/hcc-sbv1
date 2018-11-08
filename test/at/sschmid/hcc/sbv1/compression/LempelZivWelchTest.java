@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 public class LempelZivWelchTest {
   
   private static final Logger LOGGER;
-  private static final boolean CSV = false;
+  private static final boolean CREATE_CSV = false;
   
   static {
     LOGGER = Logger.getLogger(LempelZivWelchTest.class.getName());
@@ -127,7 +127,7 @@ public class LempelZivWelchTest {
   }
   
   private void csv(final LempelZivWelch zip, final String fileNameSuffix) {
-    if (!CSV) {
+    if (!CREATE_CSV) {
       return;
     }
     

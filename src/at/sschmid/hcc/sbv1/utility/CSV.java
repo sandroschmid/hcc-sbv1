@@ -384,7 +384,7 @@ public final class CSV implements AutoCloseable {
    */
   public CSV save() throws IOException {
     if (writer == null) {
-      throw new IllegalStateException("CSV file was not opened. Cannot add a row.");
+      throw new IllegalStateException("CSV file was not opened. Cannot save file.");
     }
     
     try {

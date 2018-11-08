@@ -14,7 +14,7 @@ public final class LempelZivWelch {
     return zip;
   }
   
-  private static final String FILES_SUB_DIR = "UE02\\files";
+  private static final String FILES_SUB_DIR = "UE02\\files\\lempel-ziv-welch";
   private static final int DICT_START = 256;
   
   private final String input;
@@ -42,7 +42,7 @@ public final class LempelZivWelch {
   }
   
   public double getCompressionRatio() {
-    return 1 / (this.getResultSize() / (double) input.length());
+    return input.length() / (double) this.getResultSize();
   }
   
   public String getDecodedResult() {
@@ -198,13 +198,13 @@ public final class LempelZivWelch {
     private final SortedSet<String> words;
     private final String dictionaryWord;
     private final Map.Entry<String, Integer> output;
-    
-    public Step(final int symbolIndex,
-                final char currentSymbol,
-                final Character nextSymbol,
-                final SortedSet<String> words,
-                final String dictionaryWord,
-                final Map.Entry<String, Integer> output) {
+  
+    private Step(final int symbolIndex,
+                 final char currentSymbol,
+                 final Character nextSymbol,
+                 final SortedSet<String> words,
+                 final String dictionaryWord,
+                 final Map.Entry<String, Integer> output) {
       this.symbolIndex = symbolIndex;
       this.currentSymbol = currentSymbol;
       this.nextSymbol = nextSymbol;
@@ -224,31 +224,31 @@ public final class LempelZivWelch {
   
     private String dictionaryWord;
     private Map.Entry<String, Integer> output;
-    
-    public StepBuilder(final int symbolIndex, final char currentSymbol) {
+  
+    private StepBuilder(final int symbolIndex, final char currentSymbol) {
       this(symbolIndex, currentSymbol, null);
       setOutput(String.valueOf(currentSymbol), (int) currentSymbol);
     }
   
-    public StepBuilder(final int symbolIndex, final char currentSymbol, final Character nextSymbol) {
+    private StepBuilder(final int symbolIndex, final char currentSymbol, final Character nextSymbol) {
       this.symbolIndex = symbolIndex;
       this.currentSymbol = currentSymbol;
       this.nextSymbol = nextSymbol;
     }
-    
-    public void addWord(final String word) {
+  
+    private void addWord(final String word) {
       words.add(word);
     }
-    
-    public void setDictionaryWord(final String dictionaryWord) {
+  
+    private void setDictionaryWord(final String dictionaryWord) {
       this.dictionaryWord = dictionaryWord;
     }
-    
-    public void setOutput(final String word, final int output) {
+  
+    private void setOutput(final String word, final int output) {
       this.output = new AbstractMap.SimpleImmutableEntry<>(word, output);
     }
-    
-    public Step build() {
+  
+    private Step build() {
       return new Step(symbolIndex, currentSymbol, nextSymbol, words, dictionaryWord, output);
     }
     
