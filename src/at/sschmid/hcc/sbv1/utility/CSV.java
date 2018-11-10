@@ -13,7 +13,7 @@ import java.util.stream.Stream;
  * Helper class for creating and writing CSV files.
  *
  * @author Sandro Schmid <sandro.schmid@students.fh-hagenberg.at>
- * @version 1.0.2
+ * @version 1.0.3
  */
 public final class CSV implements AutoCloseable {
   
@@ -287,6 +287,32 @@ public final class CSV implements AutoCloseable {
   }
   
   /**
+   * Adds a row of cells with {@link Object}-values. Once added, a row cannot be changed anymore.
+   *
+   * @param values Cells with {@link Object}-values to use for the new CSV-row
+   * @return {@link CSV}-builder
+   *
+   * @throws IOException If an I/O error occurs
+   */
+  public CSV addRow(final Object[] values) throws IOException {
+    return addRow(values, 1);
+  }
+  
+  /**
+   * Adds a row of cells with {@link Object}-values {@code n} times. Once added, a row cannot be changed anymore.
+   *
+   * @param values Cells with {@link Object}-values to use for the new CSV-row
+   * @param n      Number of copies of the {@code values}
+   * @return {@link CSV}-builder
+   *
+   * @throws IOException If an I/O error occurs
+   */
+  public CSV addRow(final Object[] values, final int n) throws IOException {
+    appendRow(Arrays.stream(values).map(Object::toString), n);
+    return this;
+  }
+  
+  /**
    * Adds a row of cells with {@link String}-values. Once added, a row cannot be changed anymore.
    *
    * @param values Cells with {@link String}-values to use for the new CSV-row
@@ -336,6 +362,21 @@ public final class CSV implements AutoCloseable {
    */
   public CSV addRow(final Row row, final int n) throws IOException {
     appendRow(row.build(), n);
+    return this;
+  }
+  
+  /**
+   * Adds multiple {@link Row}s at once. Once added, a row cannot be changed anymore.
+   *
+   * @param rows array of {@link Row}-builders to use for the new CSV-rows
+   * @return {@link CSV}-builder
+   *
+   * @throws IOException If an I/O error occurs
+   */
+  public CSV addRows(final Row[] rows) throws IOException {
+    for (final Row row : rows) {
+      addRow(row);
+    }
     return this;
   }
   
@@ -575,7 +616,7 @@ public final class CSV implements AutoCloseable {
    * Builder for a row in a CSV file.
    *
    * @author Sandro Schmid <sandro.schmid@students.fh-hagenberg.at>
-   * @version 1.0.2
+   * @version 1.0.3
    */
   public class Row {
     
@@ -834,7 +875,7 @@ public final class CSV implements AutoCloseable {
       }
       return this;
     }
-    
+  
     /**
      * Adds a cell with a {@code char}-value. Once added, a cell cannot be changed anymore.
      *
@@ -844,7 +885,7 @@ public final class CSV implements AutoCloseable {
     public Row cell(final char value) {
       return cell(value, 1);
     }
-    
+  
     /**
      * Adds a cell {@code n} times with a {@code char}-value. Once added, a cell cannot be changed anymore.
      *
@@ -855,7 +896,7 @@ public final class CSV implements AutoCloseable {
     public Row cell(final char value, final int n) {
       return cell(String.valueOf(value), n);
     }
-    
+  
     /**
      * Adds a cell for each {@code char}-value in the array. Once added, a cell cannot be changed anymore.
      *
@@ -866,6 +907,53 @@ public final class CSV implements AutoCloseable {
       for (float value : values) {
         cell(value);
       }
+      return this;
+    }
+  
+    /**
+     * Adds a cell with a {@link Object}-value. Once added, a cell cannot be changed anymore.
+     *
+     * @param value The cell's value
+     * @return {@link Row}-builder
+     */
+    public Row cell(final Object value) {
+      return cell(value, 1);
+    }
+  
+    /**
+     * Adds a cell {@code n} times with a {@link Object}-value. Once added, a cell cannot be changed anymore.
+     *
+     * @param value The cell's value
+     * @param n     How often the {@code value} should be added
+     * @return {@link Row}-builder
+     */
+    public Row cell(final Object value, final int n) {
+      if (value instanceof Byte) {
+        return cell((byte) value, n);
+      } else if (value instanceof Integer) {
+        return cell((int) value, n);
+      } else if (value instanceof Long) {
+        return cell((long) value, n);
+      } else if (value instanceof Double) {
+        return cell((double) value, n);
+      } else if (value instanceof Float) {
+        return cell((float) value, n);
+      } else if (value instanceof Character) {
+        return cell((char) value, n);
+      } else {
+        return cell(String.valueOf(value), n);
+      }
+    }
+  
+    /**
+     * Adds a cell for each {@link Object}-value in the array. Once added, a cell cannot be changed anymore.
+     *
+     * @param values The values for the cells
+     * @return {@link Row}-builder
+     */
+    public Row cells(final Object[] values) {
+      Arrays.stream(values)
+          .forEach(this::cell);
       return this;
     }
     
@@ -902,7 +990,7 @@ public final class CSV implements AutoCloseable {
     }
     
     /**
-     * //		 * Adds a cell for each {@link String}-value in the array. Once added, a cell cannot be changed anymore.
+     * Adds a cell for each {@link String}-value in the array. Once added, a cell cannot be changed anymore.
      *
      * @param values The values for the cells
      * @return {@link Row}-builder

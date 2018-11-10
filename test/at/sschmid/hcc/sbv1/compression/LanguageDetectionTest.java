@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class LanguageDetectionTest {
   
@@ -18,7 +19,7 @@ public class LanguageDetectionTest {
   private static final boolean CREATE_CSV = false;
   private static final String FILES_DIR = "D:\\Documents\\Dropbox\\FH HGB\\HCC\\Semester "
       + "1\\SBV1\\UE\\UE02\\files\\lang\\modified\\";
-  private static final String[] LANGUAGES = new String[]{ "de", "en", "es", "fr", "it", "pl", "nl", "prt" };
+  private static final String[] LANGUAGES = new String[]{ "de", "en", "nl", "es", "prt", "fr", "it", "pl" };
   
   static {
     LOGGER = Logger.getLogger(LanguageDetectionTest.class.getName());
@@ -57,9 +58,8 @@ public class LanguageDetectionTest {
         if (!file.createNewFile()) {
           throw new IOException("Could not create file " + file.getName());
         }
-        
-        try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(file),
-            StandardCharsets.UTF_8)) {
+  
+        try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
           writer.write(combinedText);
         }
       }
@@ -73,8 +73,12 @@ public class LanguageDetectionTest {
     try (final CSV csv = new CSV("analysis")) {
       csv.open();
   
+      final FilebasedCRDelta[][] confusionMatrix = new FilebasedCRDelta[LANGUAGES.length][LANGUAGES.length];
+  
+      int x = 0;
       for (final String signalLang : LANGUAGES) {
-        final SortedSet<FilebasedCRDelta> ratios = new TreeSet<>();
+        final List<FilebasedCRDelta> ratios = new ArrayList<>(LANGUAGES.length);
+        int y = 0;
         for (final String refLang : LANGUAGES) {
           final File refFile = getFile(String.format("%s\\refs\\text_%s.txt", FILES_DIR, refLang));
           final File refZipFile = getFile(String.format("%s\\refs-zip\\text_%s.txt.zip", FILES_DIR, refLang));
@@ -86,13 +90,18 @@ public class LanguageDetectionTest {
               FILES_DIR,
               refLang,
               signalLang));
-          ratios.add(new FilebasedCRDelta(refLang,
+  
+          final FilebasedCRDelta delta = new FilebasedCRDelta(refLang,
               refFile.length(),
               refZipFile.length(),
               combinedFile.length(),
-              combinedZipFile.length()));
+              combinedZipFile.length());
+          ratios.add(delta);
+          confusionMatrix[x][y++] = delta;
         }
-    
+  
+        ratios.sort(FilebasedCRDelta::compareTo);
+        
         csv.addRow(csv.row().cell("Signal:").cell(signalLang.toUpperCase()))
             .addRow(csv.row()
                 .cell("Ref. Lang")
@@ -115,8 +124,40 @@ public class LanguageDetectionTest {
               .cell(String.format("%.4f", ratio.bytesRatio_combined_CombinedZip))
               .cell(String.format("%.4f", ratio.bytesRatioDelta)));
         }
-    
+  
         csv.emptyRow();
+        x++;
+      }
+  
+      csv.emptyRow().addRow(csv.row().cell("CONFUSION MATRIX"));
+      final CSV.Row headerRow = csv.row().empty().cell("B(r)").cell("CR(r)");
+      final CSV.Row subHeaderRow = csv.row().empty(3);
+      for (final String lang : LANGUAGES) {
+        headerRow.cell(lang.toUpperCase()).empty(3);
+        subHeaderRow.cell("Rank").cell("B(r+s)").cell("CR(r+s)").cell("CR(d)");
+      }
+      csv.addRow(headerRow).addRow(subHeaderRow);
+  
+      for (x = 0; x < confusionMatrix.length; x++) {
+        final String lang = LANGUAGES[x];
+        final List<FilebasedCRDelta> sortedDeltas = Arrays.stream(confusionMatrix[x])
+            .sorted()
+            .collect(Collectors.toList());
+        final FilebasedCRDelta langDelta = sortedDeltas.stream().filter(d -> d.refLang.equals(lang)).findFirst().get();
+        final CSV.Row row = csv.row()
+            .cell(lang.toUpperCase())
+            .cell(langDelta.bytesRef)
+            .cell(langDelta.bytesRatio_ref_refZip);
+        final CSV.Row row2 = csv.row().empty(3);
+        for (int y = 0; y < confusionMatrix[x].length; y++) {
+          final FilebasedCRDelta delta = confusionMatrix[x][y];
+          row.cell(sortedDeltas.indexOf(delta) + 1)
+              .cell(delta.bytesCombined)
+              .cell(delta.bytesRatio_combined_CombinedZip)
+              .cell(delta.bytesRatioDelta);
+          row2.empty(3).cell(delta.bytesRatioDeltaRelative);
+        }
+        csv.addRow(row).addRow(row2);
       }
     } catch (IOException e) {
       e.printStackTrace();
@@ -257,6 +298,7 @@ public class LanguageDetectionTest {
     private final double bytesRatio_ref_refZip;
     private final double bytesRatio_combined_CombinedZip;
     private final double bytesRatioDelta;
+    private final double bytesRatioDeltaRelative;
     
     private FilebasedCRDelta(final String refLang,
                              final long bytesRef,
@@ -271,6 +313,7 @@ public class LanguageDetectionTest {
       this.bytesRatio_ref_refZip = bytesRef / (double) bytesRefZip;
       this.bytesRatio_combined_CombinedZip = bytesCombined / (double) bytesCombinedZip;
       this.bytesRatioDelta = bytesRatio_ref_refZip - bytesRatio_combined_CombinedZip;
+      this.bytesRatioDeltaRelative = bytesRatioDelta / bytesRatio_ref_refZip;
     }
     
     @Override
