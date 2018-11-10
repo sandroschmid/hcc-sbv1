@@ -1,15 +1,11 @@
-import at.sschmid.hcc.sbv1.image.AbstractUserInputPlugIn;
-import at.sschmid.hcc.sbv1.image.Image;
-import at.sschmid.hcc.sbv1.image.ImageTransformation;
-import at.sschmid.hcc.sbv1.image.Transformations;
+import at.sschmid.hcc.sbv1.image.*;
 import ij.gui.GenericDialog;
 
 import java.util.regex.Pattern;
 
 public final class Transform_ extends AbstractUserInputPlugIn<Transform_.Input> {
   
-  private static final ImageTransformation.TranslationMode TRANSLATION_MODE =
-      ImageTransformation.TranslationMode.NearestNeighbour;
+  private static final Interpolation.Mode INTERPOLATION_MODE = Interpolation.Mode.BiLinear;
   private static final double DEFAULT_TRANS_X = 23.1416;
   private static final double DEFAULT_TRANS_Y = -49.9999;
   private static final double DEFAULT_ROTATION = 31.7465;
@@ -18,8 +14,8 @@ public final class Transform_ extends AbstractUserInputPlugIn<Transform_.Input> 
   
   @Override
   public void process(final Image image) {
-    final ImageTransformation imageTransformation = new ImageTransformation(image);
-    final Image transformedImage = imageTransformation.transform(input.getTransformations(), TRANSLATION_MODE)
+    final Transformation transformation = new Transformation(image);
+    final Image transformedImage = transformation.transform(input.getTransformations(), INTERPOLATION_MODE)
         .getResult();
     
     addResult(transformedImage, String.format("%s - transformed image (%s)", pluginName, input.order));

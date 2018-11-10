@@ -41,8 +41,7 @@ public abstract class AbstractPlugIn implements PlugInFilter {
   }
   
   protected final void addResult(final Image image) {
-    final String name = image.name;
-    if (name == null || name.isEmpty()) {
+    if (!image.hasName()) {
       final int resultNumber = results.size() + 1;
       image.withName(String.format(RESULT_IMAGE_NAME_FORMAT, resultNumber, pluginName));
     }
@@ -54,20 +53,12 @@ public abstract class AbstractPlugIn implements PlugInFilter {
     results.add(image.withName(name));
   }
   
-  protected final void addResult(final ImageTransformation transformation) {
+  protected final void addResult(final ImageGenerator transformation) {
     addResult(transformation.getResult());
   }
   
-  protected final void addResult(final ImageTransformation transformation, final String name) {
+  protected final void addResult(final ImageGenerator transformation, final String name) {
     addResult(transformation.getResult(), name);
-  }
-  
-  protected final void addResult(final Checkerboard checkerboard) {
-    addResult(checkerboard.generate());
-  }
-  
-  protected final void addResult(final Checkerboard checkerboard, final String name) {
-    addResult(checkerboard.generate(), name);
   }
   
   protected abstract void process(final Image image);

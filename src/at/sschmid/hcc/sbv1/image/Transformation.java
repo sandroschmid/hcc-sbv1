@@ -1,37 +1,33 @@
 package at.sschmid.hcc.sbv1.image;
 
-import at.sschmid.hcc.sbv1.utility.Point;
-
 import java.util.logging.Logger;
 
-public final class ImageTransformation {
+public final class Transformation implements ImageGenerator {
   
-  private static final Logger LOGGER = Logger.getLogger(ImageTransformation.class.getName());
+  private static final Logger LOGGER = Logger.getLogger(Transformation.class.getName());
   
   private Image image;
   
-  public ImageTransformation(final Image image) {
-    this.image = new Image(image);
-    
-    if (image.hasName()) {
-      this.image.name += " (transformed)";
-    } else {
-      this.image.name = "Transformed";
-    }
+  public Transformation(final Image image) {
+    this(image, image.hasName() ? image.name + " (transformed)" : "Transformed");
+  }
+  
+  public Transformation(final Image image, final String name) {
+    this.image = new Image(image).withName(name);
   }
   
   public Image invert() {
-    final Image result = new Image(image);
+    final Image result = new Image(image, false);
     for (int x = 0; x < result.width; x++) {
       for (int y = 0; y < result.height; y++) {
-        result.data[x][y] = image.maxColor - result.data[x][y];
+        result.data[x][y] = image.maxColor - image.data[x][y];
       }
     }
     return result;
   }
   
-  public ImageTransformation transfer(final int[] transferFunction) {
-    final Image result = new Image(image.width, image.height);
+  public Transformation transfer(final int[] transferFunction) {
+    final Image result = new Image(image, false);
     for (int x = 0; x < image.width; x++) {
       for (int y = 0; y < image.height; y++) {
         result.data[x][y] = transferFunction[image.data[x][y]];
@@ -42,31 +38,35 @@ public final class ImageTransformation {
     return this;
   }
   
-  public ImageTransformation transform(final Transformations transformations) {
-    return transform(transformations, TranslationMode.BiLinear);
+  public Transformation transform(final Transformations transformations) {
+    return transform(transformations, Interpolation.Mode.BiLinear);
   }
   
-  public ImageTransformation transform(final Transformations transformations, final TranslationMode translationMode) {
+  public Transformation transform(final Transformations transformations,
+                                  final Interpolation.Mode mode) {
     while (transformations.hasNext()) {
       final Transformations.TransformationItem item = transformations.next();
       if (item instanceof Transformations.Translation) {
-        translate((Transformations.Translation) item, translationMode);
+        translate((Transformations.Translation) item, mode);
       } else if (item instanceof Transformations.Rotation) {
-        rotate((Transformations.Rotation) item, translationMode);
+        rotate((Transformations.Rotation) item, mode);
       } else {
-        scale((Transformations.Scale) item, translationMode);
+        scale((Transformations.Scale) item, mode);
       }
     }
     
     return this;
   }
   
+  @Override
   public Image getResult() {
     return image;
   }
   
-  private void translate(final Transformations.Translation translation, final TranslationMode translationMode) {
-    final Image result = new Image(image.width, image.height);
+  private void translate(final Transformations.Translation translation,
+                         final Interpolation.Mode mode) {
+    final Image result = new Image(image, false);
+    final Interpolation interpolation = image.interpolation();
     
     final double widthHalf = image.width / 2d;
     final double heightHalf = image.height / 2d;
@@ -90,15 +90,16 @@ public final class ImageTransformation {
         posY = posY + heightHalf;
         
         // interpolate
-        result.data[x][y] = getInterpolatedColor(posX, posY, translationMode);
+        result.data[x][y] = interpolation.getColor(posX, posY, mode);
       }
     }
     
     image = result;
   }
   
-  private void rotate(final Transformations.Rotation rotation, final TranslationMode translationMode) {
-    final Image result = new Image(image.width, image.height);
+  private void rotate(final Transformations.Rotation rotation, final Interpolation.Mode mode) {
+    final Image result = new Image(image, false);
+    final Interpolation interpolation = image.interpolation();
     final double cosTheta = Math.cos(rotation.radians);
     final double sinTheta = Math.sin(rotation.radians);
     
@@ -120,14 +121,14 @@ public final class ImageTransformation {
         posY = posY + heightHalf;
   
         // interpolate
-        result.data[x][y] = getInterpolatedColor(posX, posY, translationMode);
+        result.data[x][y] = interpolation.getColor(posX, posY, mode);
       }
     }
     
     image = result;
   }
   
-  private void scale(final Transformations.Scale scale, final TranslationMode translationMode) {
+  private void scale(final Transformations.Scale scale, final Interpolation.Mode mode) {
     if (scale.factor < 0.01d || scale.factor > 10d) {
       throw new IllegalArgumentException(String.format("%f is not a valid scale. Scale must be in [0.01;10].",
           scale.factor));
@@ -136,7 +137,8 @@ public final class ImageTransformation {
     final int newWidth = (int) (image.width * scale.factor + 0.5); // arithm round
     final int newHeight = (int) (image.height * scale.factor + 0.5);
     
-    final Image result = new Image(newWidth, newHeight);
+    final Image result = new Image(image.name, newWidth, newHeight);
+    final Interpolation interpolation = image.interpolation();
     
     // forward mapping
 //		double scaleFactorX = newWidth / (double) width;
@@ -163,7 +165,7 @@ public final class ImageTransformation {
         double newY = y / scaleFactorY;
         
         // forward mapping: use x/y coords instead of newX/newY
-        int interpolatedColor = getInterpolatedColor(newX, newY, translationMode);
+        int interpolatedColor = interpolation.getColor(newX, newY, mode);
         
         // forward mapping
 //		int roundedNewX = (int)(newX + 0.5);
@@ -177,43 +179,6 @@ public final class ImageTransformation {
     }
     
     image = result;
-  }
-  
-  private int getInterpolatedColor(final double x, final double y, final TranslationMode translationMode) {
-    if (translationMode == TranslationMode.NearestNeighbour) {
-      return getRawValue(new Point((int) (x + 0.5), (int) (y + 0.5)));
-      
-    } else {
-      // How to get the 4 coords for e.g (3.7, 12.2)
-      // P0: (3,12) P1: (4,12), P2: (3, 13), P3: (4,13)
-      final Point p1 = new Point((int) x, (int) y);
-      final Point p2 = new Point(p1.x, p1.y + 1);
-      final Point p3 = new Point(p1.x + 1, p1.y);
-      final Point p4 = new Point(p1.x + 1, p1.y + 1);
-      
-      final double xPercentage = x - p1.x;
-      final double yPercentage = y - p1.y;
-      
-      final int p1Color = getRawValue(p1);
-      final int p2Color = getRawValue(p2);
-      final int p3Color = getRawValue(p3);
-      final int p4Color = getRawValue(p4);
-      
-      final double interpolatedColor1 = p1Color + xPercentage * (p2Color - p1Color);
-      final double interpolatedColor2 = p3Color + xPercentage * (p3Color - p4Color);
-      final double interpolatedColor3 = interpolatedColor1 + yPercentage * (interpolatedColor2 - interpolatedColor1);
-      
-      return (int) interpolatedColor3;
-    }
-  }
-  
-  private int getRawValue(final Point p) {
-    return p.x >= 0 && p.x < image.width && p.y >= 0 && p.y < image.height ? image.data[p.x][p.y] : 0;
-  }
-  
-  public enum TranslationMode {
-    NearestNeighbour,
-    BiLinear
   }
   
 }

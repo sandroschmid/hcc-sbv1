@@ -15,11 +15,11 @@ public final class ImageCalculation {
   }
   
   public Image difference() {
-    return calculate((c1, c2) -> Math.abs(c1 - c2));
+    return calculate("Difference", (c1, c2) -> Math.abs(c1 - c2));
   }
   
-  private Image calculate(final Operation operation) {
-    final Image result = new Image(image1.width, image1.height);
+  private Image calculate(final String operationName, final Operation operation) {
+    final Image result = new Image(getImageName(operationName), image1.width, image1.height);
     for (int x = 0; x < image1.width; x++) {
       for (int y = 0; y < image1.height; y++) {
         result.data[x][y] = operation.getResultColor(image1.data[x][y], image2.data[x][y]);
@@ -27,6 +27,10 @@ public final class ImageCalculation {
     }
     
     return result;
+  }
+  
+  private String getImageName(final String operation) {
+    return String.format("%s of '%s' and '%s'", operation, image1.getName("Image 1"), image2.getName("Image 2"));
   }
   
   @FunctionalInterface

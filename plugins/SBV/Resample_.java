@@ -1,6 +1,6 @@
 import at.sschmid.hcc.sbv1.image.AbstractUserInputPlugIn;
 import at.sschmid.hcc.sbv1.image.Image;
-import at.sschmid.hcc.sbv1.image.ImageTransformation;
+import at.sschmid.hcc.sbv1.image.Interpolation;
 import at.sschmid.hcc.sbv1.image.Transformations;
 import ij.gui.GenericDialog;
 
@@ -11,11 +11,11 @@ public final class Resample_ extends AbstractUserInputPlugIn<Double> {
   @Override
   public void process(final Image image) {
     final Image scaledImgNN = image.transformation()
-        .transform(new Transformations().scale(input), ImageTransformation.TranslationMode.NearestNeighbour)
+        .transform(new Transformations().scale(input), Interpolation.Mode.NearestNeighbour)
         .getResult();
   
     final Image scaledImgBiLin = image.transformation()
-        .transform(new Transformations().scale(input), ImageTransformation.TranslationMode.BiLinear)
+        .transform(new Transformations().scale(input), Interpolation.Mode.BiLinear)
         .getResult();
     
     addResult(scaledImgNN, String.format("%s - NN", pluginName));

@@ -18,11 +18,17 @@ public final class Image {
   private final int imageCount;
   
   public Image(final Image image) {
+    this(image, true);
+  }
+  
+  public Image(final Image image, final boolean copyData) {
     this(image.name, null, image.width, image.height, image.maxColor);
     
-    for (int x = 0; x < image.width; x++) {
-      if (image.height >= 0) {
-        System.arraycopy(image.data[x], 0, data[x], 0, image.height);
+    if (copyData) {
+      for (int x = 0; x < image.width; x++) {
+        if (image.height >= 0) {
+          System.arraycopy(image.data[x], 0, data[x], 0, image.height);
+        }
       }
     }
   }
@@ -74,8 +80,16 @@ public final class Image {
     return new Histogram(this);
   }
   
-  public ImageTransformation transformation() {
-    return new ImageTransformation(this);
+  public Transformation transformation() {
+    return new Transformation(this);
+  }
+  
+  public Transformation transformation(final String name) {
+    return new Transformation(this, name);
+  }
+  
+  public Interpolation interpolation() {
+    return new Interpolation(this);
   }
   
   public Checkerboard checkerboard(final Image other) {
