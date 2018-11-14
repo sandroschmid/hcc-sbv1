@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 public class ECGApp {
   
   private static final Logger LOGGER;
+  
   static {
     LoggerFactory.setLevel(Level.OFF);
     LOGGER = LoggerFactory.getLogger(ECGApp.class.getName());
@@ -27,9 +28,9 @@ public class ECGApp {
   
   private static final int VALUES_FOR_BASELINE = 100;
   private static final byte SAMPLE_WIDTH = 25;
-  private static final double PEEK_CHANGE = .100d;
+  private static final double PEEK_CHANGE = .25d;
   
-  private static final int MEDIAN_FILTER_RADIUS = 25;
+  private static final int MEDIAN_FILTER_RADIUS = 20;
   
   public static void main(final String[] args) {
     new ECGApp(FILES_DIR, ECG);
@@ -47,18 +48,24 @@ public class ECGApp {
       means[i] = mean;
       medians[i] = median;
     }
-    
-    final Map<String, int[]> chartOriginal = new HashMap<>();
-    chartOriginal.put("ECG", charts[0]);
-    chartOriginal.put("Mean", means);
-    chartOriginal.put("Median", medians);
-    chartOriginal.put("Peeks", charts[2]);
-    new LineChart(fileName + " - (normalized original)", chartOriginal);
-    
-    final Map<String, int[]> chartModified = new HashMap<>();
-    chartModified.put("ECG", charts[1]);
-    chartModified.put("Peeks", charts[2]);
-    new LineChart(fileName + " - (modified)", chartModified);
+  
+    final Thread chartOriginal = new Thread(() -> {
+      final Map<String, int[]> data = new HashMap<>();
+      data.put("ECG", charts[0]);
+      data.put("Mean", means);
+      data.put("Median", medians);
+      data.put("Peeks", charts[2]);
+      new LineChart(fileName + " - (normalized original)", data);
+    });
+    chartOriginal.start();
+  
+    final Thread chartMod = new Thread(() -> {
+      final Map<String, int[]> data = new HashMap<>();
+      data.put("ECG", charts[1]);
+      data.put("Peeks", charts[2]);
+      new LineChart(fileName + " - (modified)", data);
+    });
+    chartMod.start();
   }
   
   private int[][] getChartValues(final String fileName) {
@@ -223,25 +230,28 @@ public class ECGApp {
       }
       
       final int sample = (int) (sampleSum / (double) mps.length + .5d);
-      
-      if (prevSample > 0 && sample > mean) {
+  
+      if (prevSample > 0) { // && sample > mean) {
         final int sampleDiff = sample - prevSample;
         final double incRatio = sampleDiff / (double) prevSample;
         if (Math.abs(incRatio) >= PEEK_CHANGE) {
           if (sampleDiff > 0) { // only positive peeks
             if (!peekFound) {
-//              peekPositions[i + SAMPLE_WIDTH / 2] = 1000;
+              // peekPositions[i + SAMPLE_WIDTH / 2] = mean / 2;
               LOGGER.info("Peek at " + i);
               peekFound = true;
             }
           } else {
             peekFound = false;
+            for (int j = i; j > i - SAMPLE_WIDTH; j--) {
+              peekPositions[i] = mean / 2;
+            }
           }
         }
-        
-        if (peekFound) {
-          peekPositions[i] = mean / 2;
-        }
+
+//        if (peekFound) {
+//          peekPositions[i] = mean / 2;
+//        }
 
 //        if (sampleDiff > 0) { // only positive peeks
 //          if (!peekFound) {
