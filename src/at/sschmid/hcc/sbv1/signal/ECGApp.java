@@ -27,10 +27,10 @@ public class ECGApp {
   private static final String ECG_MOVEMENT = "ECG_mitBewegung.txt";
   
   private static final int VALUES_FOR_BASELINE = 100;
-  private static final byte SAMPLE_WIDTH = 25;
+  private static final byte SAMPLE_WIDTH = 15;
   private static final double PEEK_CHANGE = .25d;
   
-  private static final int MEDIAN_FILTER_RADIUS = 20;
+  private static final int MEDIAN_FILTER_RADIUS = 10;
   
   public static void main(final String[] args) {
     new ECGApp(FILES_DIR, ECG);
@@ -55,7 +55,7 @@ public class ECGApp {
       data.put("Mean", means);
       data.put("Median", medians);
       data.put("Peeks", charts[2]);
-      new LineChart(fileName + " - (normalized original)", data);
+      new LineChart(String.format("%s - (normalized original)", fileName), data);
     });
     chartOriginal.start();
   
@@ -63,7 +63,7 @@ public class ECGApp {
       final Map<String, int[]> data = new HashMap<>();
       data.put("ECG", charts[1]);
       data.put("Peeks", charts[2]);
-      new LineChart(fileName + " - (modified)", data);
+      new LineChart(String.format("%s - (modified)", fileName), data);
     });
     chartMod.start();
   }
@@ -106,7 +106,10 @@ public class ECGApp {
 
 //        charts[1] = sampleBasedBaselineCorrection(device);
 //        charts[1] = medianBaselineCorrection(device);
-        charts[1] = meanFilter(charts[0], MEDIAN_FILTER_RADIUS);
+        charts[1] = charts[0];
+        for (int i = 0; i < 3; i++) {
+          charts[1] = meanFilter(charts[1], MEDIAN_FILTER_RADIUS);
+        }
         
         final int[] peekPositions = findPeekPositions(charts[0]);
 //        LOGGER.info(peekPositions.length + " peeks found.");
