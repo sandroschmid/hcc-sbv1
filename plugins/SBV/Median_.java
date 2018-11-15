@@ -117,4 +117,4 @@ public final class Median_ extends AbstractUserInputPlugIn<Integer> {
     return (int) dialog.getNextNumber();
   }
   
-} // class Median_
+}

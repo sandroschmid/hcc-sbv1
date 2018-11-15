@@ -2,7 +2,7 @@ package at.sschmid.hcc.sbv1.image;
 
 import java.util.logging.Logger;
 
-public final class Checkerboard {
+public final class Checkerboard implements ImageGenerator {
   
   private static final Logger LOGGER = Logger.getLogger(Checkerboard.class.getName());
   private static final byte DEFAULT_SEGMENT_COUNT = 4;
@@ -39,7 +39,8 @@ public final class Checkerboard {
     }
   }
   
-  public Image generate() {
+  @Override
+  public Image getResult() {
     if (result != null) {
       return result;
     }
@@ -48,8 +49,8 @@ public final class Checkerboard {
     
     final int segmentWidth = getSegmentCountQuotient(result.width);
     final int segmentHeight = getSegmentCountQuotient(result.height);
-    
-    LOGGER.info("Generating checkerboard with 2 images");
+  
+    LOGGER.info(String.format("Generating checkerboard '%s'", name));
     LOGGER.info(String.format(" > Image-Size:    %d x %d", result.width, result.height));
     LOGGER.info(String.format(" > Segments-Size: %d x %d", segmentWidth, segmentHeight));
     
@@ -75,11 +76,11 @@ public final class Checkerboard {
   }
   
   public void show() {
-    generate().show();
+    getResult().show();
   }
   
   public void show(final String label) {
-    generate().show(label);
+    getResult().show(label);
   }
   
   @Override
