@@ -4,6 +4,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -124,6 +126,31 @@ public class LempelZivWelchTest {
     Assert.assertEquals(input, zip.getDecodedResult());
     Assert.assertEquals(3.714, compressionRatio, 0.001);
     Assert.assertEquals(input.length(), (int) (resultSize * compressionRatio));
+  }
+  
+  @Test
+  public void minCr() {
+    final LempelZivWelch[] zips = new LempelZivWelch[]{
+        LempelZivWelch.encode("abcacbbacbcacabcba"),
+        LempelZivWelch.encode("abccbbfghacbij"),
+        LempelZivWelch.encode("abcdefghij"),
+        LempelZivWelch.encode("ababababab"),
+        LempelZivWelch.encode("aaaabbbbaaabbb"),
+        LempelZivWelch.encode("aaaabbbbabaabb"),
+        LempelZivWelch.encode("aaaaaaaaaa"),
+    };
+    
+    Arrays.sort(zips, Comparator.comparingDouble(LempelZivWelch::getCompressionRatio));
+    
+    for (LempelZivWelch zip : zips) {
+      System.out.println(String.format("'%s' (%d) -> '%s' (RL = %d, CR = %.4f, dict = '%s')",
+          zip.getInput(),
+          zip.getInput().length(),
+          zip.getResult(),
+          zip.getResultSize(),
+          zip.getCompressionRatio(),
+          zip.getDictionary()));
+    }
   }
   
   private void csv(final LempelZivWelch zip, final String fileNameSuffix) {

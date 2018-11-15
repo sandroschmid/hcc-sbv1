@@ -72,7 +72,8 @@ public class HuffmanCodingTest {
   
   @Test
   public void encodingMinCr() {
-    final String input = "abcdefghij";
+//    final String input = "abcdefghij";
+    final String input = "aaabbbcdefghij";
     final HuffmanCoding coding = HuffmanCoding.encode(input);
     
     LOGGER.info(String.format("Huffman('%s') = %s, CR=%.4f",
@@ -83,8 +84,9 @@ public class HuffmanCodingTest {
   
   @Test
   public void encodingMaxCr() {
+//    final String input = "aaaaaaaaab";
+//    final String input = "aaaaabaaca";
     final String input = "aaaaaaaabc";
-//    final String input = "abcabcabca";
 //    final String input = "aaaaaaaaaa";
     final HuffmanCoding coding = HuffmanCoding.encode(input);
     

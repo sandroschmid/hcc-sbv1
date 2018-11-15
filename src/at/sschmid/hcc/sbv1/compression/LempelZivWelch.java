@@ -29,6 +29,10 @@ public final class LempelZivWelch {
     this.input = input;
   }
   
+  public String getInput() {
+    return input;
+  }
+  
   public List<Step> getSteps() {
     return steps;
   }

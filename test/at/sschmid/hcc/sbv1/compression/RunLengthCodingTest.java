@@ -40,6 +40,12 @@ public class RunLengthCodingTest {
   public void nonBinary() {
     final RunLengthCoding.Config config = new RunLengthCoding.Config();
   
+    test("aaaaaaaaa", "a9", 4.5, config);
+    test("aaaaaaaab", "a8b", 3, config);
+    test("aaaabaaaa", "a4ba4", 1.8, config);
+    test("abcdefghij", "abcdefghij", 1, config);
+    test("ababababab", "ababababab", 1, config);
+    
     test("ab", "ab", 1, config);
     test("aabb", "a2b2", 1, config);
     test("abcaaaacbbaaccc", "abca4cb2a2c3", 1.25, config);
