@@ -1,11 +1,13 @@
 package at.sschmid.hcc.sbv1.image;
 
-import java.util.ArrayDeque;
-import java.util.Queue;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class Transformations {
   
-  private final Queue<TransformationItem> items = new ArrayDeque<>();
+  private final List<TransformationItem> items = new ArrayList<>();
+  
+  private int pollIndex = 0;
   
   public Transformations translate(final double x, final double y) {
     if (x != 0d || y != 0d) {
@@ -32,14 +34,19 @@ public final class Transformations {
   }
   
   public boolean hasNext() {
-    return !items.isEmpty();
+    return pollIndex < items.size();
   }
   
   public TransformationItem next() {
-    return items.poll();
+    return items.get(pollIndex++);
+  }
+  
+  public void reset() {
+    pollIndex = 0;
   }
   
   public interface TransformationItem {
+    // empty interface
   }
   
   public static class Translation implements TransformationItem {

@@ -1,5 +1,6 @@
 import at.sschmid.hcc.sbv1.image.AbstractUserInputPlugIn;
 import at.sschmid.hcc.sbv1.image.Image;
+import at.sschmid.hcc.sbv1.utility.Utility;
 import ij.gui.GenericDialog;
 
 import java.util.Arrays;
@@ -38,8 +39,7 @@ public final class MedianAsync_ extends AbstractUserInputPlugIn<Integer> {
     final Image resultImg = new Image(image.width, image.height);
     
     // equally distribute the work to each available cpu-core
-    final int cores = Runtime.getRuntime()
-        .availableProcessors() * 2;
+    final int cores = Utility.threadCount();
     final MedianFilterWorker[] workers = new MedianFilterWorker[cores];
     final Thread[] threads = new Thread[cores];
     final int workerHeight = (int) Math.floor(image.height / (double) cores);
