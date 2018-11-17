@@ -1,26 +1,28 @@
 import at.sschmid.hcc.sbv1.image.*;
-import ij.IJ;
+import at.sschmid.hcc.sbv1.utility.Utility;
 import ij.gui.GenericDialog;
+
+import java.util.concurrent.ExecutorService;
 
 public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
   
-  private static final Interpolation.Mode INTERPOLATION_MODE = Interpolation.Mode.BiLinear;
   private static final double DEFAULT_TRANS_X = 3.1416;
   private static final double DEFAULT_TRANS_Y = -7.9999;
   private static final double DEFAULT_ROTATION = 11.5;
-  private static final int DEFAULT_OPTIMIZATION_RUNS = 1;
+  private static final int DEFAULT_OPTIMIZATION_RUNS = 5;
   
   @Override
   public void process(final Image image) {
     final Transformation transformation = new Transformation(image);
     final Image transformedImage = transformation
-        .transform(input.getTransformations(), INTERPOLATION_MODE)
+        .transform(input.getTransformations(), Interpolation.Mode.BiLinear)
         .getResult();
   
-    final double initError = getSSEMetricError(image, transformedImage);
+    final double initError = new SquaredSumOfError().getError(image, transformedImage);
     addResult(transformedImage, String.format("%s - transformed image (t,r, e=%s)", pluginName, initError));
   
-    final Image result = getRegisteredImage(image, transformedImage, initError);
+    final ErrorMetric errorMetric = new SquaredSumOfError();
+    final Image result = getRegisteredImage(image, transformedImage, initError, errorMetric);
     addResult(result);
     addResult(image.calculation(result).difference());
   }
@@ -41,7 +43,12 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
         (int) dialog.getNextNumber());
   }
   
-  private Image getRegisteredImage(final Image image, final Image transformedImage, final double initError) {
+  private Image getRegisteredImage(final Image image,
+                                   final Image transformedImage,
+                                   final double initError,
+                                   final ErrorMetric errorMetric) {
+    final long start = System.currentTimeMillis();
+    
     // fully automated registration using the following parameters:
     final int searchRadius = 10; // 10 to left, 10 to right and mid --> 21
     final double scalePerRun = 0.9d;
@@ -57,32 +64,53 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     double bestTy = 0;
     double bestRot = 0;
     double bestSse = initError;
+    Transformations bestTransformations = null;
     
     // offsets for further runs
     double currMidTx = 0;
     double currMidTy = 0;
     double currMidRot = 0;
     
-    for (int run = 0; run < input.getOptimizationRuns(); run++) {
+    final int optimizationRuns = input.getOptimizationRuns();
+    for (int run = 0; run < optimizationRuns; run++) {
       for (int xIdx = -searchRadius; xIdx < searchRadius; xIdx++) {
         for (int yIdx = -searchRadius; yIdx < searchRadius; yIdx++) {
           for (int rotIdx = -searchRadius; rotIdx < searchRadius; rotIdx++) {
-            double currTx = currMidTx + xIdx + stepWidthTranslation;
-            double currTy = currMidTy + yIdx + stepWidthTranslation;
-            double currRot = currMidRot + rotIdx * stepWidthRotation;
-            final Transformations transformations = new Transformations().translate(currTx, currTy).rotate(currRot);
-            final Image testImage = transformedImage.transformation().transform(transformations).getResult();
-            double currErr = getSSEMetricError(image, testImage);
-            if (currErr < bestSse) {
-              bestSse = currErr;
-              bestTx = currTx;
-              bestTy = currTy;
-              bestRot = currRot;
-              IJ.log(String.format("new best SSE: %s, bestTz=%s, bestTy=%s, bestRot=%s",
-                  bestSse,
-                  bestTx,
-                  bestTy,
-                  bestRot));
+            final double currTx = currMidTx + xIdx + stepWidthTranslation;
+            final double currTy = currMidTy + yIdx + stepWidthTranslation;
+            final double currRot = currMidRot + rotIdx * stepWidthRotation;
+  
+            final ErrorWorker[] errorWorkers = new ErrorWorker[]{
+                new ErrorWorker(image,
+                    transformedImage,
+                    errorMetric,
+                    new Transformations().translate(currTx, currTy).rotate(currRot)),
+                new ErrorWorker(image,
+                    transformedImage,
+                    errorMetric,
+                    new Transformations().rotate(currRot).translate(currTx, currTy))
+            };
+  
+            final ExecutorService executor = Utility.threadPool();
+            for (final ErrorWorker errorWorker : errorWorkers) {
+              executor.execute(errorWorker);
+            }
+  
+            Utility.wait(executor);
+  
+            for (final ErrorWorker errorWorker : errorWorkers) {
+              if (errorWorker.error < bestSse) {
+                bestSse = errorWorker.error;
+                bestTx = currTx;
+                bestTy = currTy;
+                bestRot = currRot;
+                bestTransformations = errorWorker.transformations;
+//              IJ.log(String.format("new best SSE: %s, bestTz=%s, bestTy=%s, bestRot=%s",
+//                  bestSse,
+//                  bestTx,
+//                  bestTy,
+//                  bestRot));
+              }
             }
           }
         }
@@ -98,23 +126,42 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
       currMidRot = bestRot;
     }
     
-    final Transformations transformations = new Transformations().translate(bestTx, bestTy).rotate(bestRot);
-    return transformedImage.transformation(String.format("minimal error=%s", bestSse))
-        .transform(transformations)
+    if (bestTransformations == null) {
+      return transformedImage;
+    }
+    
+    bestTransformations.reset();
+    final Image result = transformedImage.transformation(String.format("Minimal error=%s", bestSse))
+        .transform(bestTransformations, Interpolation.Mode.BiLinear)
         .getResult();
+  
+    System.out.println(String.format("Register Duration %.3f", (System.currentTimeMillis() - start) / 1000d));
+    return result;
   }
   
-  private double getSSEMetricError(final Image img1, Image img2) {
-    double sseSum = 0d;
-    for (int x = 0; x < img1.width; x++) {
-      for (int y = 0; y < img1.height; y++) {
-        final int val1 = img1.data[x][y];
-        final int val2 = img2.data[x][y];
-        final int diff = val1 - val2;
-        sseSum += diff * diff;
+  @FunctionalInterface
+  public interface ErrorMetric {
+    
+    double getError(final Image image1, final Image image2);
+    
+  }
+  
+  public static class SquaredSumOfError implements ErrorMetric {
+    
+    @Override
+    public double getError(final Image image1, final Image image2) {
+      double sseSum = 0d;
+      for (int x = 0; x < image1.width; x++) {
+        for (int y = 0; y < image1.height; y++) {
+          final int val1 = image1.data[x][y];
+          final int val2 = image2.data[x][y];
+          final int diff = val1 - val2;
+          sseSum += diff * diff;
+        }
       }
+      return sseSum;
     }
-    return sseSum;
+  
   }
   
   static class Input {
@@ -139,6 +186,36 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     
     private int getOptimizationRuns() {
       return optimizationRuns;
+    }
+    
+  }
+  
+  private static class ErrorWorker implements Runnable {
+    
+    private final Image image;
+    private final Image transformedImage;
+    private final ErrorMetric errorMetric;
+    private final Transformations transformations;
+    
+    private double error;
+    
+    private ErrorWorker(final Image image,
+                        final Image transformedImage,
+                        final ErrorMetric errorMetric,
+                        final Transformations transformations) {
+      this.image = image;
+      this.transformedImage = transformedImage;
+      this.errorMetric = errorMetric;
+      this.transformations = transformations;
+    }
+    
+    @Override
+    public void run() {
+      final Image testImage = transformedImage.transformation()
+          .transform(transformations, Interpolation.Mode.NearestNeighbour)
+          .getResult();
+      
+      error = errorMetric.getError(image, testImage);
     }
     
   }
