@@ -11,6 +11,7 @@
       <sourceFolder url="file://$MODULE_DIR$/SBV" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Stacks" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Tools" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

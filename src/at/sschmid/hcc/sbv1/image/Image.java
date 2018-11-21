@@ -1,5 +1,7 @@
 package at.sschmid.hcc.sbv1.image;
 
+import at.sschmid.hcc.sbv1.utility.Utility;
+
 public final class Image {
   
   private static final String DEFAULT_NAME_FORMAT = "Image %02d";
@@ -80,6 +82,10 @@ public final class Image {
     return new Histogram(this);
   }
   
+  public Histogram2d histogram2d(final Image other) {
+    return new Histogram2d(this, other);
+  }
+  
   public Transformation transformation() {
     return new Transformation(this);
   }
@@ -102,6 +108,27 @@ public final class Image {
   
   public boolean sizeEqualsTo(final Image other) {
     return width == other.width && height == other.height;
+  }
+  
+  public double entropy() {
+    final double[] probabilities = histogram().getProbabilities();
+    double sum = .0d;
+    for (final double probability : probabilities) {
+      sum += probability * Utility.binLog(probability);
+    }
+    return -sum;
+  }
+  
+  public double entropy2d(final Image other) {
+    final double[][] probabilities = histogram2d(other).getProbabilities();
+    double sum = 0d;
+    for (int colorX = 0; colorX < probabilities.length; colorX++) {
+      for (int colorY = 0; colorY < probabilities.length; colorY++) {
+        final double probability = probabilities[colorX][colorY];
+        sum += probability * Utility.binLog(probability);
+      }
+    }
+    return -sum;
   }
   
   public void show() {

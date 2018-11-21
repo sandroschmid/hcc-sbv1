@@ -39,8 +39,8 @@ public final class Interpolation {
     final double interpolatedColor1 = p1Color + xPercentage * (p2Color - p1Color);
     final double interpolatedColor2 = p3Color + xPercentage * (p4Color - p3Color);
     final double interpolatedColor3 = interpolatedColor1 + yPercentage * (interpolatedColor2 - interpolatedColor1);
-    
-    return (int) interpolatedColor3;
+  
+    return Math.max(Math.min((int) interpolatedColor3, image.maxColor), 0);
   }
   
   private int getRawValue(final Point p) {
