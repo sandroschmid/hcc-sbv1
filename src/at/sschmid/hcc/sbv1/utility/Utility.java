@@ -5,6 +5,8 @@ import java.util.concurrent.Executors;
 
 public class Utility {
   
+  private static final double LOG_FOR_TWO = Math.log(2);
+  
   public static int threadCount() {
     return Runtime.getRuntime().availableProcessors() * 2;
   }
@@ -18,6 +20,10 @@ public class Utility {
     while (!executor.isTerminated()) {
       // wait
     }
+  }
+  
+  public static double binLog(double x) {
+    return x != 0 ? Math.log(x) / LOG_FOR_TWO : 0;
   }
   
 }

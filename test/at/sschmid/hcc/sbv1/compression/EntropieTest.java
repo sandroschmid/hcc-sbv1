@@ -1,5 +1,6 @@
 package at.sschmid.hcc.sbv1.compression;
 
+import at.sschmid.hcc.sbv1.utility.Utility;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -47,13 +48,9 @@ public class EntropieTest {
     double sum = 0d;
     for (double p : probabilities.values()) {
 //      sum += p * y;
-      sum += p * binLog(p);
+      sum += p * Utility.binLog(p);
     }
     return -sum;
-  }
-  
-  private double binLog(double x) {
-    return Math.log(x) / Math.log(2);
   }
   
 }

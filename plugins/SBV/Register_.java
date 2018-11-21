@@ -6,10 +6,11 @@ import java.util.concurrent.ExecutorService;
 
 public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
   
-  private static final double DEFAULT_TRANS_X = 3.1416;
-  private static final double DEFAULT_TRANS_Y = -7.9999;
-  private static final double DEFAULT_ROTATION = 11.5;
+  private static final double DEFAULT_TRANS_X = 0; // 3.1416;
+  private static final double DEFAULT_TRANS_Y = 0; // -7.9999;
+  private static final double DEFAULT_ROTATION = 90; // 11.5;
   private static final int DEFAULT_OPTIMIZATION_RUNS = 5;
+  private static final Input.ErrorMetricType DEFAULT_METRIC = Input.ErrorMetricType.MI;
   
   @Override
   public void process(final Image image) {
@@ -18,10 +19,13 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
         .transform(input.getTransformations(), Interpolation.Mode.BiLinear)
         .getResult();
   
-    final double initError = new SquaredSumOfError().getError(image, transformedImage);
+    final ErrorMetric errorMetric = input.errorMetricType.equals(Input.ErrorMetricType.SSE)
+        ? new SquaredSumOfErrorMetric()
+        : new MutualInformationMetric(image, transformedImage);
+  
+    final double initError = errorMetric.getError(image, transformedImage);
     addResult(transformedImage, String.format("%s - transformed image (t,r, e=%s)", pluginName, initError));
   
-    final ErrorMetric errorMetric = new SquaredSumOfError();
     final Image result = getRegisteredImage(image, transformedImage, initError, errorMetric);
     addResult(result);
     addResult(image.calculation(result).difference());
@@ -33,6 +37,11 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     dialog.addNumericField("Translate Y", DEFAULT_TRANS_Y, 4);
     dialog.addNumericField("Rotation (deg)", DEFAULT_ROTATION, 4);
     dialog.addNumericField("Optimization runs", DEFAULT_OPTIMIZATION_RUNS, 0);
+    dialog.addRadioButtonGroup("Error metric",
+        new String[]{ Input.ErrorMetricType.SSE.value, Input.ErrorMetricType.MI.value },
+        1,
+        0,
+        DEFAULT_METRIC.value);
   }
   
   @Override
@@ -40,7 +49,10 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     return new Input(dialog.getNextNumber(),
         dialog.getNextNumber(),
         dialog.getNextNumber(),
-        (int) dialog.getNextNumber());
+        (int) dialog.getNextNumber(),
+        dialog.getNextRadioButton().equals(Input.ErrorMetricType.SSE.value)
+            ? Input.ErrorMetricType.SSE
+            : Input.ErrorMetricType.MI);
   }
   
   private Image getRegisteredImage(final Image image,
@@ -76,8 +88,8 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
       for (int xIdx = -searchRadius; xIdx < searchRadius; xIdx++) {
         for (int yIdx = -searchRadius; yIdx < searchRadius; yIdx++) {
           for (int rotIdx = -searchRadius; rotIdx < searchRadius; rotIdx++) {
-            final double currTx = currMidTx + xIdx + stepWidthTranslation;
-            final double currTy = currMidTy + yIdx + stepWidthTranslation;
+            final double currTx = currMidTx + xIdx * stepWidthTranslation; // TODO * or +?
+            final double currTy = currMidTy + yIdx * stepWidthTranslation; // TODO * or +?
             final double currRot = currMidRot + rotIdx * stepWidthRotation;
   
             final ErrorWorker[] errorWorkers = new ErrorWorker[]{
@@ -146,7 +158,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     
   }
   
-  public static class SquaredSumOfError implements ErrorMetric {
+  public static class SquaredSumOfErrorMetric implements ErrorMetric {
     
     @Override
     public double getError(final Image image1, final Image image2) {
@@ -161,7 +173,22 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
       }
       return sseSum;
     }
+    
+  }
   
+  public static class MutualInformationMetric implements ErrorMetric {
+    
+    private final double sumEntropy1AndEntropy2;
+    
+    public MutualInformationMetric(final Image image1, final Image image2) {
+      this.sumEntropy1AndEntropy2 = image1.entropy() + image2.entropy();
+    }
+    
+    @Override
+    public double getError(final Image image1, final Image image2) {
+      return sumEntropy1AndEntropy2 - image1.entropy2d(image2);
+    }
+    
   }
   
   static class Input {
@@ -170,14 +197,18 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     private final double transY;
     private final double rotDeg;
     private final int optimizationRuns;
+    private final ErrorMetricType errorMetricType;
     
     private Input(final double transX,
                   final double transY,
-                  final double rotDeg, final int optimizationRuns) {
+                  final double rotDeg,
+                  final int optimizationRuns,
+                  final ErrorMetricType errorMetricType) {
       this.transX = transX;
       this.transY = transY;
       this.rotDeg = rotDeg;
       this.optimizationRuns = optimizationRuns;
+      this.errorMetricType = errorMetricType;
     }
     
     private Transformations getTransformations() {
@@ -186,6 +217,17 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     
     private int getOptimizationRuns() {
       return optimizationRuns;
+    }
+  
+    enum ErrorMetricType {
+      SSE("SSE"),
+      MI("MI");
+    
+      private final String value;
+    
+      ErrorMetricType(final String value) {
+        this.value = value;
+      }
     }
     
   }

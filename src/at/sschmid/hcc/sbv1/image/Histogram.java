@@ -8,6 +8,7 @@ public final class Histogram {
   private final int[] data;
   private final int count;
   
+  private double[] probabilities;
   private boolean calculatedStatistics;
   private int minOccurringColor;
   private int maxOccurringColor;
@@ -18,7 +19,7 @@ public final class Histogram {
   
   public Histogram(final Image image) {
     this.image = image;
-    this.count = image.size;    
+    this.count = image.size;
     this.data = new int[image.maxColor + 1];
     for (int x = 0; x < image.width; x++) {
       for (int y = 0; y < image.height; y++) {
@@ -30,6 +31,21 @@ public final class Histogram {
   public int[] getData() {
     int[] copy = new int[data.length];
     System.arraycopy(data, 0, copy, 0, data.length);
+    
+    return copy;
+  }
+  
+  public double[] getProbabilities() {
+    if (probabilities == null) {
+      probabilities = new double[data.length];
+      final double pixels = (double) image.size;
+      for (int i = 0; i < probabilities.length; i++) {
+        probabilities[i] = data[i] / pixels;
+      }
+    }
+    
+    double[] copy = new double[probabilities.length];
+    System.arraycopy(probabilities, 0, copy, 0, data.length);
     
     return copy;
   }
