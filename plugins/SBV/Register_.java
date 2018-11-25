@@ -73,6 +73,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
         : new MutualInformationMetric(originalImage, transformedImage);
     
     final double initError = errorMetric.getError(originalImage, transformedImage);
+    addResult(originalImage, String.format("%s - original image", pluginName));
     addResult(transformedImage, String.format("%s - transformed image (t,r, e=%s)", pluginName, initError));
     
     final Image result = getRegisteredImage(originalImage, transformedImage, initError, errorMetric);

@@ -4,6 +4,8 @@ import at.sschmid.hcc.sbv1.utility.Point;
 
 public final class Interpolation {
   
+  private static final int BG_COLOR = 0;
+  
   private final Image image;
   
   public Interpolation(final Image image) {
@@ -44,7 +46,7 @@ public final class Interpolation {
   }
   
   private int getRawValue(final Point p) {
-    return p.x >= 0 && p.x < image.width && p.y >= 0 && p.y < image.height ? image.data[p.x][p.y] : 0;
+    return p.x >= 0 && p.x < image.width && p.y >= 0 && p.y < image.height ? image.data[p.x][p.y] : BG_COLOR;
   }
   
   public enum Mode {
