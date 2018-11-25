@@ -3,15 +3,22 @@ import at.sschmid.hcc.sbv1.utility.Utility;
 import ij.gui.GenericDialog;
 
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Logger;
 
 public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
   
+  private static final Logger LOGGER = Logger.getLogger(Register_.class.getName());
+  
   private static final boolean DEFAULT_SPLIT_IMAGE = true;
-  private static final double DEFAULT_TRANS_X = 0; // 3.1416;
-  private static final double DEFAULT_TRANS_Y = 0; // -7.9999;
-  private static final double DEFAULT_ROTATION = 90; // 11.5;
+  private static final double DEFAULT_SEARCH_RADIUS = 10;
+  private static final double DEFAULT_SCALE_PER_RUN = 0.9d;
+  private static final double DEFAULT_STEP_WIDTH_TRANS = 2d;
+  private static final double DEFAULT_STEP_WIDTH_ROT = DEFAULT_STEP_WIDTH_TRANS;
+  private static final double DEFAULT_TRANS_X = 3.1416;
+  private static final double DEFAULT_TRANS_Y = -7.9999;
+  private static final double DEFAULT_ROTATION = 11.5;
   private static final int DEFAULT_OPTIMIZATION_RUNS = 5;
-  private static final Input.ErrorMetricType DEFAULT_METRIC = Input.ErrorMetricType.MI;
+  private static final ErrorMetricType DEFAULT_METRIC = ErrorMetricType.MI;
   
   @Override
   public void process(final Image image) {
@@ -43,13 +50,17 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
   
   @Override
   protected void setupDialog(final GenericDialog dialog) {
+    dialog.addNumericField("Search radius", DEFAULT_SEARCH_RADIUS, 0);
+    dialog.addNumericField("Scale per run", DEFAULT_SCALE_PER_RUN, 1);
+    dialog.addNumericField("Step width (translation)", DEFAULT_STEP_WIDTH_TRANS, 3);
+    dialog.addNumericField("Step width (rotation)", DEFAULT_STEP_WIDTH_ROT, 3);
     dialog.addCheckbox("Split image", DEFAULT_SPLIT_IMAGE);
     dialog.addNumericField("Translate X", DEFAULT_TRANS_X, 4);
     dialog.addNumericField("Translate Y", DEFAULT_TRANS_Y, 4);
     dialog.addNumericField("Rotation (deg)", DEFAULT_ROTATION, 4);
     dialog.addNumericField("Optimization runs", DEFAULT_OPTIMIZATION_RUNS, 0);
     dialog.addRadioButtonGroup("Error metric",
-        new String[]{ Input.ErrorMetricType.SSE.value, Input.ErrorMetricType.MI.value },
+        new String[]{ ErrorMetricType.SSE.value, ErrorMetricType.MI.value },
         1,
         0,
         DEFAULT_METRIC.value);
@@ -57,18 +68,22 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
   
   @Override
   protected Input getInput(final GenericDialog dialog) {
-    return new Input(dialog.getNextBoolean(),
+    return new Input((int) dialog.getNextNumber(),
+        dialog.getNextNumber(),
+        dialog.getNextNumber(),
+        dialog.getNextNumber(),
+        dialog.getNextBoolean(),
         dialog.getNextNumber(),
         dialog.getNextNumber(),
         dialog.getNextNumber(),
         (int) dialog.getNextNumber(),
-        dialog.getNextRadioButton().equals(Input.ErrorMetricType.SSE.value)
-            ? Input.ErrorMetricType.SSE
-            : Input.ErrorMetricType.MI);
+        dialog.getNextRadioButton().equals(ErrorMetricType.SSE.value)
+            ? ErrorMetricType.SSE
+            : ErrorMetricType.MI);
   }
   
   private void registration(final Image originalImage, final Image transformedImage) {
-    final ErrorMetric errorMetric = input.errorMetricType.equals(Input.ErrorMetricType.SSE)
+    final ErrorMetric errorMetric = input.errorMetricType.equals(ErrorMetricType.SSE)
         ? new SquaredSumOfErrorMetric()
         : new MutualInformationMetric(originalImage, transformedImage);
     
@@ -86,12 +101,10 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
                                    final double initError,
                                    final ErrorMetric errorMetric) {
     final long start = System.currentTimeMillis();
-    
-    // fully automated registration using the following parameters:
-    final int searchRadius = 10; // 10 to left, 10 to right and mid --> 21
-    final double scalePerRun = 0.9d;
-    double stepWidthTranslation = 2d;
-    double stepWidthRotation = 2d;
+  
+    // fully automated registration:
+    double stepWidthTranslation = input.stepWidthTranslation;
+    double stepWidthRotation = input.stepWidthRotation;
     
     // first run
     // overall number of tested images = 21 * 21 * 21 = 9,261 Bilder (~1 Minute)
@@ -111,13 +124,13 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     
     final int optimizationRuns = input.getOptimizationRuns();
     for (int run = 0; run < optimizationRuns; run++) {
-      for (int xIdx = -searchRadius; xIdx < searchRadius; xIdx++) {
-        for (int yIdx = -searchRadius; yIdx < searchRadius; yIdx++) {
-          for (int rotIdx = -searchRadius; rotIdx < searchRadius; rotIdx++) {
-            final double currTx = currMidTx + xIdx * stepWidthTranslation; // TODO * or +?
-            final double currTy = currMidTy + yIdx * stepWidthTranslation; // TODO * or +?
+      for (int xIdx = -input.searchRadius; xIdx < input.searchRadius; xIdx++) {
+        for (int yIdx = -input.searchRadius; yIdx < input.searchRadius; yIdx++) {
+          for (int rotIdx = -input.searchRadius; rotIdx < input.searchRadius; rotIdx++) {
+            final double currTx = currMidTx + xIdx * stepWidthTranslation;
+            final double currTy = currMidTy + yIdx * stepWidthTranslation;
             final double currRot = currMidRot + rotIdx * stepWidthRotation;
-  
+        
             final ErrorWorker[] errorWorkers = new ErrorWorker[]{
                 new ErrorWorker(image,
                     transformedImage,
@@ -128,14 +141,14 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
                     errorMetric,
                     new Transformations().rotate(currRot).translate(currTx, currTy))
             };
-  
+        
             final ExecutorService executor = Utility.threadPool();
             for (final ErrorWorker errorWorker : errorWorkers) {
               executor.execute(errorWorker);
             }
-  
+        
             Utility.wait(executor);
-  
+        
             for (final ErrorWorker errorWorker : errorWorkers) {
               if (errorWorker.error < bestSse) {
                 bestSse = errorWorker.error;
@@ -156,8 +169,8 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
       
       // prepare next run
       // decrease search area from global search to local search
-      stepWidthTranslation *= scalePerRun;
-      stepWidthRotation *= scalePerRun;
+      stepWidthTranslation *= input.scalePerRun;
+      stepWidthRotation *= input.scalePerRun;
       
       currMidTx = bestTx;
       currMidTy = bestTy;
@@ -173,7 +186,9 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
         .transform(bestTransformations, Interpolation.Mode.BiLinear)
         .getResult();
   
-    System.out.println(String.format("Register Duration %.3f", (System.currentTimeMillis() - start) / 1000d));
+    LOGGER.info(String.format("Minimal error: %s, transformation: %s%n", bestSse, bestTransformations.toString()));
+    LOGGER.info(String.format("Register Duration %.3f%n", (System.currentTimeMillis() - start) / 1000d));
+    
     return result;
   }
   
@@ -219,46 +234,74 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
   
   static class Input {
   
+    private final int searchRadius;
+    private final double scalePerRun;
+    private final double stepWidthTranslation;
+    private final double stepWidthRotation;
     private final boolean splitImage;
-    private final double transX;
-    private final double transY;
-    private final double rotDeg;
+    private final double translationX;
+    private final double translationY;
+    private final double rotation;
     private final int optimizationRuns;
     private final ErrorMetricType errorMetricType;
   
-    private Input(final boolean splitImage,
-                  final double transX,
-                  final double transY,
-                  final double rotDeg,
+    private Input(final int searchRadius,
+                  final double scalePerRun,
+                  final double stepWidthTranslation,
+                  final double stepWidthRotation,
+                  final boolean splitImage,
+                  final double translationX,
+                  final double translationY,
+                  final double rotation,
                   final int optimizationRuns,
                   final ErrorMetricType errorMetricType) {
+      this.searchRadius = searchRadius;
+      this.scalePerRun = scalePerRun;
+      this.stepWidthTranslation = stepWidthTranslation;
+      this.stepWidthRotation = stepWidthRotation;
       this.splitImage = splitImage;
-      this.transX = transX;
-      this.transY = transY;
-      this.rotDeg = rotDeg;
+      this.translationX = translationX;
+      this.translationY = translationY;
+      this.rotation = rotation;
       this.optimizationRuns = optimizationRuns;
       this.errorMetricType = errorMetricType;
     }
+  
+    @Override
+    public String toString() {
+      return "Input {" +
+          "\n  splitImage=" + splitImage +
+          ",\n  searchRadius=" + searchRadius +
+          ",\n  scalePerRun=" + scalePerRun +
+          ",\n  stepWidthTranslation=" + stepWidthTranslation +
+          ",\n  stepWidthRotation=" + stepWidthRotation +
+          ",\n  translationX=" + translationX +
+          ",\n  translationY=" + translationY +
+          ",\n  rotation=" + rotation +
+          ",\n  optimizationRuns=" + optimizationRuns +
+          ",\n  errorMetricType=" + errorMetricType +
+          "\n}";
+    }
     
     private Transformations getTransformations() {
-      return new Transformations().translate(transX, transY).rotate(rotDeg);
+      return new Transformations().translate(translationX, translationY).rotate(rotation);
     }
     
     private int getOptimizationRuns() {
       return optimizationRuns;
     }
+    
+  }
   
-    enum ErrorMetricType {
-      SSE("SSE"),
-      MI("MI");
+  enum ErrorMetricType {
+    SSE("SSE"),
+    MI("MI");
     
-      private final String value;
+    private final String value;
     
-      ErrorMetricType(final String value) {
-        this.value = value;
-      }
+    ErrorMetricType(final String value) {
+      this.value = value;
     }
-    
   }
   
   private static class ErrorWorker implements Runnable {
