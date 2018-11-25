@@ -6,6 +6,7 @@ import java.util.concurrent.ExecutorService;
 
 public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
   
+  private static final boolean DEFAULT_SPLIT_IMAGE = true;
   private static final double DEFAULT_TRANS_X = 0; // 3.1416;
   private static final double DEFAULT_TRANS_Y = 0; // -7.9999;
   private static final double DEFAULT_ROTATION = 90; // 11.5;
@@ -14,25 +15,35 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
   
   @Override
   public void process(final Image image) {
-    final Transformation transformation = new Transformation(image);
-    final Image transformedImage = transformation
-        .transform(input.getTransformations(), Interpolation.Mode.BiLinear)
-        .getResult();
+    Image originalImage;
+    Image transformedImage;
+    if (input.splitImage) {
+      final int halfWidth = image.width / 2;
+      originalImage = new Image(halfWidth, image.height);
+      transformedImage = new Image(halfWidth, image.height);
+      for (int x = 0; x < image.width; x++) {
+        for (int y = 0; y < image.height; y++) {
+          if (x < halfWidth) {
+            originalImage.data[x][y] = image.data[x][y];
+          } else {
+            transformedImage.data[x - halfWidth][y] = image.data[x][y];
+          }
+        }
+      }
+    } else {
+      originalImage = image;
+      final Transformation transformation = new Transformation(image);
+      transformedImage = transformation
+          .transform(input.getTransformations(), Interpolation.Mode.BiLinear)
+          .getResult();
+    }
   
-    final ErrorMetric errorMetric = input.errorMetricType.equals(Input.ErrorMetricType.SSE)
-        ? new SquaredSumOfErrorMetric()
-        : new MutualInformationMetric(image, transformedImage);
-  
-    final double initError = errorMetric.getError(image, transformedImage);
-    addResult(transformedImage, String.format("%s - transformed image (t,r, e=%s)", pluginName, initError));
-  
-    final Image result = getRegisteredImage(image, transformedImage, initError, errorMetric);
-    addResult(result);
-    addResult(image.calculation(result).difference());
+    registration(originalImage, transformedImage);
   }
   
   @Override
   protected void setupDialog(final GenericDialog dialog) {
+    dialog.addCheckbox("Split image", DEFAULT_SPLIT_IMAGE);
     dialog.addNumericField("Translate X", DEFAULT_TRANS_X, 4);
     dialog.addNumericField("Translate Y", DEFAULT_TRANS_Y, 4);
     dialog.addNumericField("Rotation (deg)", DEFAULT_ROTATION, 4);
@@ -46,13 +57,27 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
   
   @Override
   protected Input getInput(final GenericDialog dialog) {
-    return new Input(dialog.getNextNumber(),
+    return new Input(dialog.getNextBoolean(),
+        dialog.getNextNumber(),
         dialog.getNextNumber(),
         dialog.getNextNumber(),
         (int) dialog.getNextNumber(),
         dialog.getNextRadioButton().equals(Input.ErrorMetricType.SSE.value)
             ? Input.ErrorMetricType.SSE
             : Input.ErrorMetricType.MI);
+  }
+  
+  private void registration(final Image originalImage, final Image transformedImage) {
+    final ErrorMetric errorMetric = input.errorMetricType.equals(Input.ErrorMetricType.SSE)
+        ? new SquaredSumOfErrorMetric()
+        : new MutualInformationMetric(originalImage, transformedImage);
+    
+    final double initError = errorMetric.getError(originalImage, transformedImage);
+    addResult(transformedImage, String.format("%s - transformed image (t,r, e=%s)", pluginName, initError));
+    
+    final Image result = getRegisteredImage(originalImage, transformedImage, initError, errorMetric);
+    addResult(result);
+    addResult(originalImage.calculation(result).difference());
   }
   
   private Image getRegisteredImage(final Image image,
@@ -181,7 +206,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     private final double sumEntropy1AndEntropy2;
     
     public MutualInformationMetric(final Image image1, final Image image2) {
-      this.sumEntropy1AndEntropy2 = image1.entropy() + image2.entropy();
+      this.sumEntropy1AndEntropy2 = image2.entropy() + image1.entropy();
     }
     
     @Override
@@ -192,18 +217,21 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
   }
   
   static class Input {
-    
+  
+    private final boolean splitImage;
     private final double transX;
     private final double transY;
     private final double rotDeg;
     private final int optimizationRuns;
     private final ErrorMetricType errorMetricType;
-    
-    private Input(final double transX,
+  
+    private Input(final boolean splitImage,
+                  final double transX,
                   final double transY,
                   final double rotDeg,
                   final int optimizationRuns,
                   final ErrorMetricType errorMetricType) {
+      this.splitImage = splitImage;
       this.transX = transX;
       this.transY = transY;
       this.rotDeg = rotDeg;
