@@ -3,7 +3,7 @@ package at.sschmid.hcc.sbv1.utility;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class Utility {
+public final class Utility {
   
   private static final double LOG_FOR_TWO = Math.log(2);
   
