@@ -131,6 +131,14 @@ public final class Image {
     return -sum;
   }
   
+  public SplitImage split() {
+    return new SplitImage(this);
+  }
+  
+  public SplitImage split(final int n) {
+    return new SplitImage(this, n);
+  }
+  
   public void show() {
     show(getName());
   }

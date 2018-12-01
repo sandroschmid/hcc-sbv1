@@ -25,18 +25,9 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     Image originalImage;
     Image transformedImage;
     if (input.splitImage) {
-      final int halfWidth = image.width / 2;
-      originalImage = new Image(halfWidth, image.height);
-      transformedImage = new Image(halfWidth, image.height);
-      for (int x = 0; x < image.width; x++) {
-        for (int y = 0; y < image.height; y++) {
-          if (x < halfWidth) {
-            originalImage.data[x][y] = image.data[x][y];
-          } else {
-            transformedImage.data[x - halfWidth][y] = image.data[x][y];
-          }
-        }
-      }
+      final SplitImage splitImage = image.split();
+      originalImage = splitImage.first().orElse(null);
+      transformedImage = splitImage.last().orElse(null);
     } else {
       originalImage = image;
       final Transformation transformation = new Transformation(image);
