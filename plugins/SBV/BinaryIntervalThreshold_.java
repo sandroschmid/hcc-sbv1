@@ -1,18 +1,36 @@
-import at.sschmid.hcc.sbv1.image.AbstractPlugIn;
+import at.sschmid.hcc.sbv1.image.AbstractUserInputPlugIn;
+import at.sschmid.hcc.sbv1.image.BinaryThreshold;
 import at.sschmid.hcc.sbv1.image.Image;
-import at.sschmid.hcc.sbv1.image.ImageTransferFunctions;
+import ij.gui.GenericDialog;
 
-public final class BinaryIntervalThreshold_ extends AbstractPlugIn {
+public final class BinaryIntervalThreshold_ extends AbstractUserInputPlugIn<BinaryThreshold> {
   
   private static final int T_MIN = 124;
   private static final int T_MAX = 230;
+  private static final int BG = 0;
+  private static final int FG = 255;
   
   @Override
   public void process(final Image image) {
-    final int[] threshTF = ImageTransferFunctions.GetBinaryThresholdTF(255, T_MIN, T_MAX, 255, 0);
-    final Image resultImg = image.transformation().transfer(threshTF).getResult();
-    
-    addResult(resultImg, String.format("Binary threshold, interval between [%d,%d]", T_MIN, T_MAX));
+    addResult(image.binary(input), pluginName);
+  }
+  
+  @Override
+  protected void setupDialog(final GenericDialog dialog) {
+    dialog.addNumericField("Threshold Min", T_MIN, 0);
+    dialog.addNumericField("Threshold Max", T_MAX, 0);
+    dialog.addNumericField("Background", BG, 0);
+    dialog.addNumericField("Foreground", FG, 0);
+  }
+  
+  @Override
+  protected BinaryThreshold getInput(final GenericDialog dialog) {
+    final int tMin = (int) dialog.getNextNumber();
+    final int tMax = (int) dialog.getNextNumber();
+    return new BinaryThreshold(tMin,
+        tMax <= tMin ? null : tMax,
+        (int) dialog.getNextNumber(),
+        (int) dialog.getNextNumber());
   }
   
 }

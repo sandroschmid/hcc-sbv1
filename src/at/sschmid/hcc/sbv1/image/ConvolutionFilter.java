@@ -261,13 +261,13 @@ public final class ConvolutionFilter {
    * Maske?
    */
   public static double[][] ApplySobelEdgeDetection(double[][] inputImg, int width, int height) {
-    double[][] returnImg = new double[width][height];
-    double[][] sobelV = new double[][]{ { 1.0, 0.0, -1.0 }, { 2.0, 0.0, -2.0 }, { 1.0, 0.0, -1.0 } };
-    double[][] sobelH = new double[][]{ { 1.0, 2.0, 1.0 }, { 0.0, 0.0, 0.0 }, { -1.0, -2.0, -1.0 } };
-    
-    int radius = 1;
-    double[][] resultSobelV = ConvolveDouble(inputImg, width, height, sobelV, radius);
-    double[][] resultSobelH = ConvolveDouble(inputImg, width, height, sobelH, radius);
+    final double[][] returnImg = new double[width][height];
+    final double[][] sobelV = new double[][] { { 1.0, 0.0, -1.0 }, { 2.0, 0.0, -2.0 }, { 1.0, 0.0, -1.0 } };
+    final double[][] sobelH = new double[][] { { 1.0, 2.0, 1.0 }, { 0.0, 0.0, 0.0 }, { -1.0, -2.0, -1.0 } };
+  
+    final int radius = 1;
+    final double[][] resultSobelV = ConvolveDouble(inputImg, width, height, sobelV, radius);
+    final double[][] resultSobelH = ConvolveDouble(inputImg, width, height, sobelH, radius);
     
     double maxGradient = 1.0;
     

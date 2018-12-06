@@ -41,8 +41,9 @@ public final class Transformations {
     return items.get(pollIndex++);
   }
   
-  public void reset() {
+  public Transformations reset() {
     pollIndex = 0;
+    return this;
   }
   
   @Override

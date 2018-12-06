@@ -1,5 +1,6 @@
 package at.sschmid.hcc.sbv1.image;
 
+import ij.IJ;
 import ij.gui.GenericDialog;
 import ij.process.ImageProcessor;
 
@@ -22,6 +23,8 @@ public abstract class AbstractUserInputPlugIn<T> extends AbstractPlugIn {
     }
     
     input = getInput(dialog);
+    IJ.log(input.toString());
+    
     super.run(imageProcessor);
   }
   

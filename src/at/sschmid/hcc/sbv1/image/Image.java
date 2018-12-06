@@ -78,6 +78,25 @@ public final class Image {
     return this;
   }
   
+  public Image binary(final BinaryThreshold binaryThreshold) {
+    final int[] tf = binaryThreshold.getTransformFunction(maxColor);
+    final Image result = transformation().transfer(tf).getResult();
+    
+    return result.withName(String.format("%s - (binary)", getName()));
+  }
+  
+  public Image edges() {
+    final double[][] inDataArrDbl = ImageJUtility.convertToDoubleArr2D(this);
+    final double[][] resultEdgeImage = ConvolutionFilter.ApplySobelEdgeDetection(inDataArrDbl, width, height);
+    int[][] resultData = ImageJUtility.convertToIntArr2D(resultEdgeImage, width, height);
+    
+    return new Image(String.format("%s - Sobel Edges", getName()), resultData, width, height);
+  }
+  
+  public DistanceMap distanceMap(final DistanceMap.DistanceMetric distanceMetric) {
+    return new DistanceMap(this, distanceMetric);
+  }
+  
   public Histogram histogram() {
     return new Histogram(this);
   }
@@ -114,8 +133,11 @@ public final class Image {
     final double[] probabilities = histogram().getProbabilities();
     double sum = .0d;
     for (final double probability : probabilities) {
-      sum += probability * Utility.binLog(probability);
+      if (probability > 0) {
+        sum += probability * Utility.binLog(probability);
+      }
     }
+    
     return -sum;
   }
   
@@ -123,11 +145,14 @@ public final class Image {
     final double[][] probabilities = histogram2d(other).getProbabilities();
     double sum = 0d;
     for (int colorX = 0; colorX < probabilities.length; colorX++) {
-      for (int colorY = 0; colorY < probabilities.length; colorY++) {
+      for (int colorY = 0; colorY < probabilities[colorX].length; colorY++) {
         final double probability = probabilities[colorX][colorY];
-        sum += probability * Utility.binLog(probability);
+        if (probability > 0) {
+          sum += probability * Utility.binLog(probability);
+        }
       }
     }
+    
     return -sum;
   }
   
@@ -149,7 +174,7 @@ public final class Image {
   
   @Override
   public String toString() {
-    return new StringBuilder(hasName() ? name : getClass().getSimpleName())
+    return new StringBuilder(hasName() ? getName() : getClass().getSimpleName())
         .append(" (")
         .append(getDefaultName())
         .append(") { w=")

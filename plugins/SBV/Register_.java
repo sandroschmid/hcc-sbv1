@@ -9,7 +9,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
   
   private static final Logger LOGGER = Logger.getLogger(Register_.class.getName());
   
-  private static final boolean DEFAULT_SPLIT_IMAGE = true;
+  private static final boolean DEFAULT_SPLIT_IMAGE = false;
   private static final double DEFAULT_SEARCH_RADIUS = 10;
   private static final double DEFAULT_SCALE_PER_RUN = 0.9d;
   private static final double DEFAULT_STEP_WIDTH_TRANS = 2d;
@@ -19,15 +19,17 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
   private static final double DEFAULT_ROTATION = 11.5;
   private static final int DEFAULT_OPTIMIZATION_RUNS = 5;
   private static final ErrorMetricType DEFAULT_METRIC = ErrorMetricType.MI;
+  private static final boolean DEFAULT_USE_EDGES = true;
   
   @Override
   public void process(final Image image) {
+//    final DistanceMap distanceMap = image.distanceMap(DistanceMap.DistanceMetric.Manhattan);
     Image originalImage;
     Image transformedImage;
     if (input.splitImage) {
       final SplitImage splitImage = image.split();
-      originalImage = splitImage.first().orElse(null);
-      transformedImage = splitImage.last().orElse(null);
+      originalImage = splitImage.first().get();
+      transformedImage = splitImage.last().get();
     } else {
       originalImage = image;
       final Transformation transformation = new Transformation(image);
@@ -51,10 +53,11 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     dialog.addNumericField("Rotation (deg)", DEFAULT_ROTATION, 4);
     dialog.addNumericField("Optimization runs", DEFAULT_OPTIMIZATION_RUNS, 0);
     dialog.addRadioButtonGroup("Error metric",
-        new String[]{ ErrorMetricType.SSE.value, ErrorMetricType.MI.value },
+        new String[] { ErrorMetricType.SSE.value, ErrorMetricType.MI.value },
         1,
         0,
         DEFAULT_METRIC.value);
+    dialog.addCheckbox("Use edges", DEFAULT_USE_EDGES);
   }
   
   @Override
@@ -70,29 +73,58 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
         (int) dialog.getNextNumber(),
         dialog.getNextRadioButton().equals(ErrorMetricType.SSE.value)
             ? ErrorMetricType.SSE
-            : ErrorMetricType.MI);
+            : ErrorMetricType.MI,
+        dialog.getNextBoolean());
   }
   
   private void registration(final Image originalImage, final Image transformedImage) {
+    Image originalImageUse;
+    Image transformedImageUse;
+    if (input.useEdges) {
+      originalImageUse = originalImage.edges();
+      transformedImageUse = transformedImage.edges();
+    } else {
+      originalImageUse = originalImage;
+      transformedImageUse = transformedImage;
+    }
+    
     final ErrorMetric errorMetric = input.errorMetricType.equals(ErrorMetricType.SSE)
         ? new SquaredSumOfErrorMetric()
-        : new MutualInformationMetric(originalImage, transformedImage);
+        : new MutualInformationMetric(originalImageUse, transformedImageUse);
+  
+    final double initError = errorMetric.getError(originalImageUse, transformedImageUse);
+    addResult(originalImageUse, String.format("%s - original image", pluginName));
+    addResult(transformedImageUse, String.format("%s - transformed image (t,r, e=%s)", pluginName, initError));
+  
+    final Transformations bestTransformations =
+        findBestTransformations(originalImageUse, transformedImageUse, initError, errorMetric);
+  
+    if (bestTransformations != null) {
+      final Image registeredImage = transformedImageUse.transformation()
+          .transform(bestTransformations, Interpolation.Mode.BiLinear)
+          .getResult();
+      addResult(registeredImage, String.format("%s - registered image", pluginName));
     
-    final double initError = errorMetric.getError(originalImage, transformedImage);
-    addResult(originalImage, String.format("%s - original image", pluginName));
-    addResult(transformedImage, String.format("%s - transformed image (t,r, e=%s)", pluginName, initError));
+      Image registeredImageNoEdges;
+      if (input.useEdges) {
+        registeredImageNoEdges = transformedImage.transformation()
+            .transform(bestTransformations.reset(), Interpolation.Mode.BiLinear)
+            .getResult();
+        addResult(registeredImageNoEdges, String.format("%s - registered image", pluginName));
+      } else {
+        registeredImageNoEdges = registeredImage;
+      }
     
-    final Image result = getRegisteredImage(originalImage, transformedImage, initError, errorMetric);
-    addResult(result);
-    addResult(originalImage.calculation(result).difference());
+      addResult(originalImage.calculation(registeredImageNoEdges).difference());
+    }
   }
   
-  private Image getRegisteredImage(final Image image,
-                                   final Image transformedImage,
-                                   final double initError,
-                                   final ErrorMetric errorMetric) {
+  private Transformations findBestTransformations(final Image image,
+                                                  final Image transformedImage,
+                                                  final double initError,
+                                                  final ErrorMetric errorMetric) {
     final long start = System.currentTimeMillis();
-  
+    
     // fully automated registration:
     double stepWidthTranslation = input.stepWidthTranslation;
     double stepWidthRotation = input.stepWidthRotation;
@@ -105,7 +137,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     double bestTx = 0;
     double bestTy = 0;
     double bestRot = 0;
-    double bestSse = initError;
+    double minError = initError;
     Transformations bestTransformations = null;
     
     // offsets for further runs
@@ -121,8 +153,8 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
             final double currTx = currMidTx + xIdx * stepWidthTranslation;
             final double currTy = currMidTy + yIdx * stepWidthTranslation;
             final double currRot = currMidRot + rotIdx * stepWidthRotation;
-        
-            final ErrorWorker[] errorWorkers = new ErrorWorker[]{
+  
+            final ErrorWorker[] errorWorkers = new ErrorWorker[] {
                 new ErrorWorker(image,
                     transformedImage,
                     errorMetric,
@@ -132,26 +164,23 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
                     errorMetric,
                     new Transformations().rotate(currRot).translate(currTx, currTy))
             };
-        
+  
             final ExecutorService executor = Utility.threadPool();
             for (final ErrorWorker errorWorker : errorWorkers) {
               executor.execute(errorWorker);
             }
-        
+  
             Utility.wait(executor);
-        
+  
             for (final ErrorWorker errorWorker : errorWorkers) {
-              if (errorWorker.error < bestSse) {
-                bestSse = errorWorker.error;
+              if (errorWorker.error < minError) {
+                minError = errorWorker.error;
                 bestTx = currTx;
                 bestTy = currTy;
                 bestRot = currRot;
                 bestTransformations = errorWorker.transformations;
-//              IJ.log(String.format("new best SSE: %s, bestTz=%s, bestTy=%s, bestRot=%s",
-//                  bestSse,
-//                  bestTx,
-//                  bestTy,
-//                  bestRot));
+//                IJ.log(String.format("Error: %s, bestTz=%s, bestTy=%s, bestRot=%s", minError, bestTx, bestTy, 
+//                bestRot));
               }
             }
           }
@@ -168,19 +197,12 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
       currMidRot = bestRot;
     }
     
-    if (bestTransformations == null) {
-      return transformedImage;
-    }
-    
-    bestTransformations.reset();
-    final Image result = transformedImage.transformation(String.format("Minimal error=%s", bestSse))
-        .transform(bestTransformations, Interpolation.Mode.BiLinear)
-        .getResult();
-  
-    LOGGER.info(String.format("Minimal error: %s, transformation: %s%n", bestSse, bestTransformations.toString()));
+    LOGGER.info(String.format("Minimal error: %s, transformation: %s%n",
+        minError,
+        bestTransformations != null ? bestTransformations.toString() : "no transformation found"));
     LOGGER.info(String.format("Register Duration %.3f%n", (System.currentTimeMillis() - start) / 1000d));
     
-    return result;
+    return bestTransformations != null ? bestTransformations.reset() : null;
   }
   
   @FunctionalInterface
@@ -235,7 +257,8 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     private final double rotation;
     private final int optimizationRuns;
     private final ErrorMetricType errorMetricType;
-  
+    private final boolean useEdges;
+    
     private Input(final int searchRadius,
                   final double scalePerRun,
                   final double stepWidthTranslation,
@@ -245,7 +268,8 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
                   final double translationY,
                   final double rotation,
                   final int optimizationRuns,
-                  final ErrorMetricType errorMetricType) {
+                  final ErrorMetricType errorMetricType,
+                  final boolean useEdges) {
       this.searchRadius = searchRadius;
       this.scalePerRun = scalePerRun;
       this.stepWidthTranslation = stepWidthTranslation;
@@ -256,6 +280,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
       this.rotation = rotation;
       this.optimizationRuns = optimizationRuns;
       this.errorMetricType = errorMetricType;
+      this.useEdges = useEdges;
     }
   
     @Override
@@ -271,6 +296,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
           ",\n  rotation=" + rotation +
           ",\n  optimizationRuns=" + optimizationRuns +
           ",\n  errorMetricType=" + errorMetricType +
+          ",\n  useEdges=" + useEdges +
           "\n}";
     }
     

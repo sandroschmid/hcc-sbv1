@@ -19,7 +19,8 @@ public final class Interpolation {
   }
   
   public int getNearestNeighbourColor(final double x, final double y) {
-    return getRawValue(new Point((int) (x + 0.5), (int) (y + 0.5)));
+    final Point p = new Point((int) (x + 0.5), (int) (y + 0.5));
+    return p.x >= 0 && p.x < image.width && p.y >= 0 && p.y < image.height ? image.data[p.x][p.y] : BG_COLOR;
   }
   
   public int getBiLinearColor(final double x, final double y) {
@@ -32,21 +33,25 @@ public final class Interpolation {
     
     final double xPercentage = x - p1.x;
     final double yPercentage = y - p1.y;
-    
-    final int p1Color = getRawValue(p1);
-    final int p2Color = getRawValue(p2);
-    final int p3Color = getRawValue(p3);
-    final int p4Color = getRawValue(p4);
+  
+    final int p1Color = p1.x >= 0 && p1.x < image.width && p1.y >= 0 && p1.y < image.height
+        ? image.data[p1.x][p1.y]
+        : BG_COLOR;
+    final int p2Color = p2.x >= 0 && p2.x < image.width && p2.y >= 0 && p2.y < image.height
+        ? image.data[p2.x][p2.y]
+        : BG_COLOR;
+    final int p3Color = p3.x >= 0 && p3.x < image.width && p3.y >= 0 && p3.y < image.height
+        ? image.data[p3.x][p3.y]
+        : BG_COLOR;
+    final int p4Color = p4.x >= 0 && p4.x < image.width && p4.y >= 0 && p4.y < image.height
+        ? image.data[p4.x][p4.y]
+        : BG_COLOR;
     
     final double interpolatedColor1 = p1Color + xPercentage * (p2Color - p1Color);
     final double interpolatedColor2 = p3Color + xPercentage * (p4Color - p3Color);
     final double interpolatedColor3 = interpolatedColor1 + yPercentage * (interpolatedColor2 - interpolatedColor1);
   
     return Math.max(Math.min((int) interpolatedColor3, image.maxColor), 0);
-  }
-  
-  private int getRawValue(final Point p) {
-    return p.x >= 0 && p.x < image.width && p.y >= 0 && p.y < image.height ? image.data[p.x][p.y] : BG_COLOR;
   }
   
   public enum Mode {
