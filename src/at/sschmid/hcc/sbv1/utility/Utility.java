@@ -5,7 +5,7 @@ import java.util.concurrent.Executors;
 
 public final class Utility {
   
-  private static final double LOG_FOR_TWO = Math.log(2);
+  private static final double NATURAL_LOG_BASE_TWO = Math.log(2);
   
   public static int threadCount() {
     return Runtime.getRuntime().availableProcessors() * 2;
@@ -23,7 +23,7 @@ public final class Utility {
   }
   
   public static double binLog(double x) {
-    return x != 0 ? Math.log(x) / LOG_FOR_TWO : 0;
+    return x != 0 ? Math.log(x) / NATURAL_LOG_BASE_TWO : 0;
   }
   
 }

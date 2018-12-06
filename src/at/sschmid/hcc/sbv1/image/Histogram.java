@@ -29,25 +29,19 @@ public final class Histogram {
   }
   
   public int[] getData() {
-    int[] copy = new int[data.length];
-    System.arraycopy(data, 0, copy, 0, data.length);
-    
-    return copy;
+    return data;
   }
   
   public double[] getProbabilities() {
     if (probabilities == null) {
       probabilities = new double[data.length];
-      final double pixels = (double) image.size;
+      final double total = (double) image.size;
       for (int i = 0; i < probabilities.length; i++) {
-        probabilities[i] = data[i] / pixels;
+        probabilities[i] = data[i] / total;
       }
     }
-    
-    double[] copy = new double[probabilities.length];
-    System.arraycopy(probabilities, 0, copy, 0, data.length);
-    
-    return copy;
+  
+    return probabilities;
   }
   
   public int getMinOccurringColor() {

@@ -20,19 +20,6 @@ public final class ImageTransferFunctions {
     return transferFunction;
   }
   
-  public static int[] GetBinaryThresholdTF(final int maxVal,
-                                           final int tmin,
-                                           final int tmax,
-                                           final int FG_VAL,
-                                           final int BG_VAL) {
-    final int[] transferFunction = new int[maxVal + 1];
-    for (int i = 0; i < maxVal; i++) {
-      transferFunction[i] = i > tmin && i < tmax ? FG_VAL : BG_VAL;
-    }
-    
-    return transferFunction;
-  }
-  
   // Bilder suchen, bei denen die Histogrameinebnung schlecht funktioniert
   // --> wenn ganze viele dunkelschwarze pxl vorkommen, da die ganzen Graustufen
   // ausgelassen werden müssen

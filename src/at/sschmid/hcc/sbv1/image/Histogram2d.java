@@ -35,12 +35,7 @@ public final class Histogram2d {
   }
   
   public int[][] getData() {
-    int[][] copy = new int[data.length][data.length];
-    for (int i = 0; i < data.length; i++) {
-      System.arraycopy(data[i], 0, copy[i], 0, data.length);
-    }
-    
-    return copy;
+    return data;
   }
   
   public double[][] getProbabilities() {
@@ -53,13 +48,8 @@ public final class Histogram2d {
         }
       }
     }
-    
-    double[][] copy = new double[probabilities.length][probabilities.length];
-    for (int i = 0; i < probabilities.length; i++) {
-      System.arraycopy(probabilities[i], 0, copy[i], 0, probabilities.length);
-    }
-    
-    return copy;
+  
+    return probabilities;
   }
   
   public int getMinOccurringColor() {
