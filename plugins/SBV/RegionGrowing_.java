@@ -25,13 +25,20 @@ public final class RegionGrowing_ extends AbstractUserInputPlugIn<BinaryThreshol
     protected void process(final Image image) {
         final PointRoi roi = (PointRoi) imagePlus.getRoi();
         final Rectangle rect = roi.getBounds();
-        final Point start = new Point(roi.getXCoordinates()[0] + rect.x, roi.getYCoordinates()[0] + rect.y);
+        final int[] xCoords = roi.getXCoordinates();
+        final int[] yCoords = roi.getYCoordinates();
+        final Point[] seeds = new Point[xCoords.length];
+        for (int i = 0; i < xCoords.length; i++) {
+            for (int j = 0; j < yCoords.length; j++) {
+                seeds[i] = new Point(xCoords[i] + rect.x, yCoords[i] + rect.y);
+            }
+        }
 
-        final Image result = performRegionGrowing(image, start);
-        addResult(result, String.format("%s - start [%d,%d]", pluginName, start.x, start.y));
+        final Image result = performRegionGrowing(image, seeds);
+        addResult(result, pluginName);
     }
 
-    private Image performRegionGrowing(final Image image, final Point seed) {
+    private Image performRegionGrowing(final Image image, final Point[] seeds) {
         final Image result = new Image(image.width, image.height);
 
         // init result
@@ -44,32 +51,34 @@ public final class RegionGrowing_ extends AbstractUserInputPlugIn<BinaryThreshol
         // non-recursive solution
         final Stack<Point> processingStack = new Stack<>();
 
-        // check if seed point is valid
-        final int seedValue = image.data[seed.x][seed.y];
-        if (seedValue >= input.thresholdMin && seedValue <= input.thresholdMax) {
-            result.data[seed.x][seed.y] = input.foreground;
-            processingStack.push(new Point(seed.x, seed.y));
-        }
+        for (final Point seed : seeds) {
+            // check if seed point is valid
+            final int seedValue = image.data[seed.x][seed.y];
+            if (seedValue >= input.thresholdMin && seedValue <= input.thresholdMax) {
+                result.data[seed.x][seed.y] = input.foreground;
+                processingStack.push(new Point(seed.x, seed.y));
+            }
 
-        while (!processingStack.empty()) {
-            final Point nextPos = processingStack.pop();
+            while (!processingStack.empty()) {
+                final Point nextPos = processingStack.pop();
 
-            // check all children in n8
-            for (int xOffset = -1; xOffset <= 1; xOffset++) {
-                for (int yOffset = -1; yOffset <= 1; yOffset++) {
-                    final int nbX = nextPos.x + xOffset;
-                    final int nbY = nextPos.y + yOffset;
+                // check all children in n8
+                for (int xOffset = -1; xOffset <= 1; xOffset++) {
+                    for (int yOffset = -1; yOffset <= 1; yOffset++) {
+                        final int nbX = nextPos.x + xOffset;
+                        final int nbY = nextPos.y + yOffset;
 
-                    // check if valid range
-                    if (nbX >= 0 && nbX < image.width && nbY >= 0 && nbY < image.height) {
-                        final int nbValue = image.data[nbX][nbY];
-                        if (result.data[nbX][nbY] == UNPROCESSED_VALUE) {
-                            // set colors and continue processing
-                            if (nbValue >= input.thresholdMin && nbValue <= input.thresholdMax) {
-                                result.data[nbX][nbY] = input.foreground;
-                                processingStack.push(new Point(nbX, nbY));
-                            } else {
-                                result.data[nbX][nbY] = input.background;
+                        // check if valid range
+                        if (nbX >= 0 && nbX < image.width && nbY >= 0 && nbY < image.height) {
+                            final int nbValue = image.data[nbX][nbY];
+                            if (result.data[nbX][nbY] == UNPROCESSED_VALUE) {
+                                // set colors and continue processing
+                                if (nbValue >= input.thresholdMin && nbValue <= input.thresholdMax) {
+                                    result.data[nbX][nbY] = input.foreground;
+                                    processingStack.push(new Point(nbX, nbY));
+                                } else {
+                                    result.data[nbX][nbY] = input.background;
+                                }
                             }
                         }
                     }
