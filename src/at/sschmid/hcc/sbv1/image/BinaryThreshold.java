@@ -1,11 +1,11 @@
 package at.sschmid.hcc.sbv1.image;
 
 public class BinaryThreshold {
-  
-  private final int thresholdMin;
-  private final Integer thresholdMax;
-  private final int background;
-  private final int foreground;
+
+  public final int thresholdMin;
+  public final Integer thresholdMax;
+  public final int background;
+  public final int foreground;
   
   public BinaryThreshold(final int thresholdMin, final int background, final int foreground) {
     this(thresholdMin, null, background, foreground);

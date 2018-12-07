@@ -16,6 +16,8 @@ public abstract class AbstractPlugIn implements PlugInFilter {
   private static final String RESULT_IMAGE_NAME_FORMAT = "Result %02d for '%s'";
   
   protected final String pluginName;
+
+  protected ImagePlus imagePlus;
   
   private final List<Image> results = new ArrayList<>();
   
@@ -25,18 +27,23 @@ public abstract class AbstractPlugIn implements PlugInFilter {
   }
   
   public final int setup(final String arg, final ImagePlus imp) {
+    imagePlus = imp;
     if (ARG_SHOW_ABOUT.equals(arg)) {
       showAbout();
       return DONE;
     }
-    
+
+    return getSetupMask();
+  }
+
+  protected int getSetupMask() {
     return DOES_8G + DOES_STACKS + SUPPORTS_MASKING;
   }
   
   @Override
   public void run(final ImageProcessor imageProcessor) {
     final Image image = getImage(imageProcessor);
-    process(image);
+    process(imageProcessor, image);
     showResults();
   }
   
@@ -60,8 +67,14 @@ public abstract class AbstractPlugIn implements PlugInFilter {
   protected final void addResult(final ImageGenerator transformation, final String name) {
     addResult(transformation.getResult(), name);
   }
-  
-  protected abstract void process(final Image image);
+
+  protected void process(final Image image) {
+    throw new RuntimeException("Not implemented");
+  }
+
+  protected void process(final ImageProcessor imageProcessor, final Image image) {
+    process(image);
+  }
   
   private void showAbout() {
     IJ.showMessage("SBV", "This is a custom plugin filter for SBV.\n");
