@@ -1,6 +1,6 @@
 package at.sschmid.hcc.sbv1.image;
 
-public class BinaryThreshold {
+public final class BinaryThreshold {
 
   public final int thresholdMin;
   public final Integer thresholdMax;
