@@ -2,6 +2,7 @@ import at.sschmid.hcc.sbv1.image.*;
 import at.sschmid.hcc.sbv1.utility.Utility;
 import ij.gui.GenericDialog;
 
+import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 
@@ -52,10 +53,8 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     dialog.addNumericField("Translate Y", DEFAULT_TRANS_Y, 4);
     dialog.addNumericField("Rotation (deg)", DEFAULT_ROTATION, 4);
     dialog.addNumericField("Optimization runs", DEFAULT_OPTIMIZATION_RUNS, 0);
-    dialog.addRadioButtonGroup("Error metric",
-        new String[] { ErrorMetricType.SSE.value, ErrorMetricType.MI.value },
-        1,
-        0,
+    dialog.addChoice("Error metric",
+        Arrays.stream(ErrorMetricType.values()).map(Enum::toString).toArray(String[]::new),
         DEFAULT_METRIC.value);
     dialog.addCheckbox("Use edges", DEFAULT_USE_EDGES);
   }
@@ -71,9 +70,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
         dialog.getNextNumber(),
         dialog.getNextNumber(),
         (int) dialog.getNextNumber(),
-        dialog.getNextRadioButton().equals(ErrorMetricType.SSE.value)
-            ? ErrorMetricType.SSE
-            : ErrorMetricType.MI,
+        ErrorMetricType.values()[dialog.getNextChoiceIndex()],
         dialog.getNextBoolean());
   }
   

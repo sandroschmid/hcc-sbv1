@@ -6,8 +6,12 @@ import java.io.IOException;
 
 public final class ConvolutionFilter {
   
-  public static double[][] ConvolveDoubleNorm(double[][] inputImg, int width, int height, double[][] kernel,
-                                              int radius, int numOfIterations) {
+  public static double[][] ConvolveDoubleNorm(double[][] inputImg,
+                                              int width,
+                                              int height,
+                                              double[][] kernel,
+                                              int radius,
+                                              int numOfIterations) {
     double[][] returnImg = inputImg;
     for (int iterCount = 0; iterCount < numOfIterations; iterCount++) {
       returnImg = ConvolutionFilter.ConvolveDoubleNorm(returnImg, width, height, kernel, radius);
@@ -16,7 +20,10 @@ public final class ConvolutionFilter {
     return returnImg;
   }
   
-  public static double[][] ConvolveDoubleNorm(double[][] inputImg, int width, int height, double[][] kernel,
+  public static double[][] ConvolveDoubleNorm(double[][] inputImg,
+                                              int width,
+                                              int height,
+                                              double[][] kernel,
                                               int radius) {
     double[][] returnImg = new double[width][height];
     

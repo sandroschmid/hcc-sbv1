@@ -47,6 +47,10 @@ public final class Image {
     this(null, data, width, height);
   }
   
+  public Image(final double[][] data, final int width, final int height) {
+    this(ImageJUtility.convertToIntArr2D(data, width, height), width, height);
+  }
+  
   public Image(final String name, final int[][] data, final int width, final int height) {
     this(name, data, width, height, DEFAULT_MAX_COLOR);
   }
