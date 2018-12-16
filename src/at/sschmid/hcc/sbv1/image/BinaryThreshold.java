@@ -16,18 +16,13 @@ public final class BinaryThreshold {
                          final int background,
                          final int foreground) {
     this.thresholdMin = thresholdMin;
-    this.thresholdMax = thresholdMax;
+    this.thresholdMax = thresholdMax == null || thresholdMax <= thresholdMin ? null : thresholdMax;
     this.background = background;
     this.foreground = foreground;
   }
   
   public int[] getTransformFunction(final int maxVal) {
     final int[] transferFunction = new int[maxVal + 1];
-//    for (int i = 0; i <= maxVal; i++) {
-//      transferFunction[i] = i >= thresholdMin && (thresholdMax == null || i <= thresholdMax) ? foreground :
-//      background;
-//    }
-  
     final int foregroundStart = Math.min(thresholdMin, maxVal);
     int i = 0;
     for (; i < foregroundStart; i++) {

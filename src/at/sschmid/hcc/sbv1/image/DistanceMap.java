@@ -25,9 +25,8 @@ public final class DistanceMap {
   }
   
   public Image asImage() {
-    return new Image(calculate(), image.width, image.height).withName(String.format("Distance map (%s) for '%s'",
-        distanceMetric,
-        image.getName()));
+    return new Image(calculate(), image.width, image.height)
+        .withName(String.format("Distance map (%s) for '%s'", distanceMetric, image.getName()));
   }
   
   private void initContour() {

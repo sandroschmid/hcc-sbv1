@@ -25,10 +25,8 @@ public final class BinaryIntervalThreshold_ extends AbstractUserInputPlugIn<Bina
   
   @Override
   protected BinaryThreshold getInput(final GenericDialog dialog) {
-    final int tMin = (int) dialog.getNextNumber();
-    final int tMax = (int) dialog.getNextNumber();
-    return new BinaryThreshold(tMin,
-        tMax <= tMin ? null : tMax,
+    return new BinaryThreshold((int) dialog.getNextNumber(),
+        (int) dialog.getNextNumber(),
         (int) dialog.getNextNumber(),
         (int) dialog.getNextNumber());
   }
