@@ -121,6 +121,10 @@ public final class Image {
     return new Interpolation(this);
   }
   
+  public Segmentation segmentation() {
+    return new Segmentation(this);
+  }
+  
   public Checkerboard checkerboard(final Image other) {
     return new Checkerboard(this, other);
   }
