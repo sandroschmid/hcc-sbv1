@@ -8,8 +8,6 @@ import java.util.LinkedList;
 class MathematicMorphology {
   
   private final int[][] structure;
-  private final int structureWidth;
-  private final int structureHeight;
   private final double structureSize;
   private final int rx;
   private final int ry;
@@ -35,9 +33,7 @@ class MathematicMorphology {
     }
     
     this.structure = structure;
-    this.structureWidth = structure.length;
-    this.structureHeight = innerLength;
-    this.structureSize = structureWidth * structureHeight;
+    this.structureSize = structure.length * innerLength;
     this.rx = (structure.length - 1) / 2;
     this.ry = (innerLength - 1) / 2;
   }
