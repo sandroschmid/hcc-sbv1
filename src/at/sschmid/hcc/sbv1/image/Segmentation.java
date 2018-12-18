@@ -2,6 +2,8 @@ package at.sschmid.hcc.sbv1.image;
 
 import at.sschmid.hcc.sbv1.utility.Point;
 
+import java.util.Collection;
+
 public class Segmentation {
   
   private final Image image;
@@ -74,6 +76,18 @@ public class Segmentation {
     }
   
     return result;
+  }
+  
+  public Image hitOrMiss(final int[][] structure) {
+    return new MathematicMorphology(structure).hitOrMiss(image);
+  }
+  
+  public Image hitAndGrow(final int[][] structure,
+                          final Neighbour neighbour,
+                          final BinaryThreshold binaryThreshold) {
+    final Collection<Point> hits = new MathematicMorphology(structure).hitOrMissPoints(image);
+    final Point[] hitArr = hits.toArray(new Point[0]);
+    return regionGrowing(hitArr, neighbour, binaryThreshold);
   }
   
 }

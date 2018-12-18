@@ -30,8 +30,8 @@ public final class MathMorph_ extends AbstractUserInputPlugIn<MathMorph_.Input> 
       default:
         throw new IllegalArgumentException(String.format("Action %s is not valid", input.action));
     }
-    
-    addResult(result, String.format("%s (%s)", input.action, input.neighbour));
+  
+    addResult(result, String.format("%s (%s ,%d)", input.action, input.neighbour, input.n));
   }
   
   @Override
