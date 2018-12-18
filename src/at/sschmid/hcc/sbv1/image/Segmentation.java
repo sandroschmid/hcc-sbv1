@@ -79,13 +79,24 @@ public class Segmentation {
   }
   
   public Image hitOrMiss(final int[][] structure) {
-    return new MathematicMorphology(structure).hitOrMiss(image);
+    return hitOrMiss(structure, 1d);
+  }
+  
+  public Image hitOrMiss(final int[][] structure, final double quality) {
+    return new MathematicMorphology(structure).hitOrMiss(image, quality);
   }
   
   public Image hitAndGrow(final int[][] structure,
                           final Neighbour neighbour,
                           final BinaryThreshold binaryThreshold) {
-    final Collection<Point> hits = new MathematicMorphology(structure).hitOrMissPoints(image);
+    return hitAndGrow(structure, 1d, neighbour, binaryThreshold);
+  }
+  
+  public Image hitAndGrow(final int[][] structure,
+                          final double quality,
+                          final Neighbour neighbour,
+                          final BinaryThreshold binaryThreshold) {
+    final Collection<Point> hits = new MathematicMorphology(structure).hitOrMissPoints(image, quality);
     final Point[] hitArr = hits.toArray(new Point[0]);
     return regionGrowing(hitArr, neighbour, binaryThreshold);
   }

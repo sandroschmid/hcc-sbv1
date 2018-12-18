@@ -7,22 +7,26 @@ public final class HitOrMiss_ extends AbstractUserInputPlugIn<HitOrMiss_.Input> 
   protected void process(final Image image) {
     final int[][] structure = getStructure();
     final Segmentation segmentation = image.segmentation();
-    final Image hits = segmentation.hitOrMiss(structure);
-    final Image grownHits = segmentation.hitAndGrow(structure, Neighbour.N8, new BinaryThreshold(255, 0, 255));
-  
+    final Image hits = segmentation.hitOrMiss(structure, input.quality);
+    final Image grownHits = segmentation.hitAndGrow(structure,
+        input.quality,
+        Neighbour.N8,
+        new BinaryThreshold(255, 0, 255));
+    
     addResult(hits, String.format("%s - hits (%dx%d)", pluginName, input.rectWidth, input.rectHeight));
     addResult(grownHits, String.format("%s - detected objects (%dx%d)", pluginName, input.rectWidth, input.rectHeight));
   }
   
   @Override
   protected void setupDialog(final GenericDialog dialog) {
+    dialog.addNumericField("Quality", 0.9, 1);
     dialog.addSlider("Width of rectangle", 1, 100, 5);
     dialog.addSlider("Height of rectangle", 1, 100, 5);
   }
   
   @Override
   protected Input getInput(final GenericDialog dialog) {
-    return new Input((int) dialog.getNextNumber(), (int) dialog.getNextNumber());
+    return new Input(dialog.getNextNumber(), (int) dialog.getNextNumber(), (int) dialog.getNextNumber());
   }
   
   private int[][] getStructure() {
@@ -43,18 +47,23 @@ public final class HitOrMiss_ extends AbstractUserInputPlugIn<HitOrMiss_.Input> 
   }
   
   static final class Input {
-    
+  
+    private final double quality;
     private final int rectWidth;
     private final int rectHeight;
-    
-    Input(final int rectWidth, final int rectHeight) {
+  
+    Input(final double quality, final int rectWidth, final int rectHeight) {
+      this.quality = quality;
       this.rectWidth = rectWidth;
       this.rectHeight = rectHeight;
     }
     
     @Override
     public String toString() {
-      return String.format("Input {\n  rectWidth=%s,\n  rectHeight=%s\n}", rectWidth, rectHeight);
+      return String.format("Input {\n  quality=%.2f,\n  rectWidth=%s,\n  rectHeight=%s\n}",
+          quality,
+          rectWidth,
+          rectHeight);
     }
     
   }
