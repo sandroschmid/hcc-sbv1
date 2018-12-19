@@ -20,8 +20,8 @@ public final class HitOrMiss_ extends AbstractUserInputPlugIn<HitOrMiss_.Input> 
   @Override
   protected void setupDialog(final GenericDialog dialog) {
     dialog.addNumericField("Quality", 0.9, 1);
-    dialog.addSlider("Width of rectangle", 1, 100, 5);
-    dialog.addSlider("Height of rectangle", 1, 100, 5);
+    dialog.addSlider("Width of rectangle", 1, 100, 3);
+    dialog.addSlider("Height of rectangle", 1, 100, 9);
   }
   
   @Override
@@ -60,7 +60,7 @@ public final class HitOrMiss_ extends AbstractUserInputPlugIn<HitOrMiss_.Input> 
     
     @Override
     public String toString() {
-      return String.format("Input {\n  quality=%.2f,\n  rectWidth=%s,\n  rectHeight=%s\n}",
+      return String.format("Hit or Miss {\n  quality=%.2f,\n  rectWidth=%s,\n  rectHeight=%s\n}",
           quality,
           rectWidth,
           rectHeight);

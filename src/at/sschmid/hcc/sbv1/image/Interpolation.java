@@ -8,7 +8,7 @@ public final class Interpolation {
   
   private final Image image;
   
-  public Interpolation(final Image image) {
+  Interpolation(final Image image) {
     this.image = image;
   }
   

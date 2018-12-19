@@ -5,7 +5,7 @@ public final class ImageCalculation {
   private final Image image1;
   private final Image image2;
   
-  public ImageCalculation(final Image image1, final Image image2) {
+  ImageCalculation(final Image image1, final Image image2) {
     this.image1 = image1;
     this.image2 = image2;
     

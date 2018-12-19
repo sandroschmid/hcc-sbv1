@@ -14,11 +14,11 @@ public final class Checkerboard implements ImageGenerator {
   
   private Image result;
   
-  public Checkerboard(final Image image1, final Image image2) {
+  Checkerboard(final Image image1, final Image image2) {
     this(image1, image2, DEFAULT_SEGMENT_COUNT);
   }
   
-  public Checkerboard(final Image image1, final Image image2, byte segmentCount) {
+  Checkerboard(final Image image1, final Image image2, byte segmentCount) {
     super();
     this.name = new StringBuilder()
         .append(segmentCount)

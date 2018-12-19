@@ -5,17 +5,17 @@ import ij.IJ;
 
 import java.util.Stack;
 
-public class RegionGrowing {
+final class RegionGrowing {
   
   private static final int UNPROCESSED_VALUE = -1;
   
   private final Image image;
   
-  public RegionGrowing(final Image image) {
+  RegionGrowing(final Image image) {
     this.image = image;
   }
   
-  public Image regionGrowing(final Point[] seeds, final Neighbour neighbour, final BinaryThreshold binaryThreshold) {
+  Image regionGrowing(final Point[] seeds, final Neighbour neighbour, final BinaryThreshold binaryThreshold) {
     final Image result = createUnprocessedImage();
     
     // non-recursive solution
@@ -72,7 +72,7 @@ public class RegionGrowing {
     return result;
   }
   
-  public Image regionLabelling(final Point[] seeds, final Neighbour neighbour, final BinaryThreshold binaryThreshold) {
+  Image regionLabelling(final Point[] seeds, final Neighbour neighbour, final BinaryThreshold binaryThreshold) {
     final Image result = createUnprocessedImage();
     
     // non-recursive solution

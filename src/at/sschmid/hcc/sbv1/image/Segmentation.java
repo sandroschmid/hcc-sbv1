@@ -4,11 +4,11 @@ import at.sschmid.hcc.sbv1.utility.Point;
 
 import java.util.Collection;
 
-public class Segmentation {
+public final class Segmentation {
   
   private final Image image;
   
-  public Segmentation(final Image image) {
+  Segmentation(final Image image) {
     this.image = image;
   }
   

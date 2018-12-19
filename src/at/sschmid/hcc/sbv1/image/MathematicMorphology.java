@@ -5,7 +5,7 @@ import at.sschmid.hcc.sbv1.utility.Point;
 import java.util.Collection;
 import java.util.LinkedList;
 
-class MathematicMorphology {
+final class MathematicMorphology {
   
   private final int[][] structure;
   private final double structureSize;

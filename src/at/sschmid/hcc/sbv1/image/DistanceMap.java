@@ -7,7 +7,7 @@ public final class DistanceMap {
   
   private double[][] distanceMap;
   
-  public DistanceMap(final Image image, final DistanceMetric distanceMetric) {
+  DistanceMap(final Image image, final DistanceMetric distanceMetric) {
     this.image = image;
     this.distanceMetric = distanceMetric;
   }

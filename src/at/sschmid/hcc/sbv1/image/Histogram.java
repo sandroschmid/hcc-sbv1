@@ -17,7 +17,7 @@ public final class Histogram {
   private int maxColor;
   private double averageColor;
   
-  public Histogram(final Image image) {
+  Histogram(final Image image) {
     this.image = image;
     this.count = image.size;
     this.data = new int[image.maxColor + 1];

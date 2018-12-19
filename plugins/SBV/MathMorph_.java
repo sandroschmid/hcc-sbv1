@@ -64,7 +64,7 @@ public final class MathMorph_ extends AbstractUserInputPlugIn<MathMorph_.Input> 
     
     @Override
     public String toString() {
-      return String.format("Input {\n  action=%s,\n  neighbour=%s, \n  n=%d\n}", action, neighbour, n);
+      return String.format("Math. Morph. {\n  action=%s,\n  neighbour=%s, \n  n=%d\n}", action, neighbour, n);
     }
     
   }
