@@ -122,7 +122,7 @@ public final class Transformation implements ImageGenerator {
         // move coordinates back from center to top-left corner
         posX = posX + widthHalf;
         posY = posY + heightHalf;
-  
+        
         // interpolate
         result.data[x][y] = interpolation.getColor(posX, posY, mode);
       }

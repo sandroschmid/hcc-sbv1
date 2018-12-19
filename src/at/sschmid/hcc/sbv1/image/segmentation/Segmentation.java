@@ -31,7 +31,7 @@ public final class Segmentation {
     while (n-- > 0) {
       result = mm.erosion(result);
     }
-  
+    
     return result;
   }
   
@@ -45,7 +45,7 @@ public final class Segmentation {
     while (n-- > 0) {
       result = mm.dilation(result);
     }
-  
+    
     return result;
   }
   
@@ -56,11 +56,11 @@ public final class Segmentation {
     while (i++ < n) {
       result = mm.erosion(result);
     }
-  
+    
     while (--i > 0) {
       result = mm.dilation(result);
     }
-  
+    
     return result;
   }
   
@@ -71,11 +71,11 @@ public final class Segmentation {
     while (i++ < n) {
       result = mm.dilation(result);
     }
-  
+    
     while (--i > 0) {
       result = mm.erosion(result);
     }
-  
+    
     return result;
   }
   

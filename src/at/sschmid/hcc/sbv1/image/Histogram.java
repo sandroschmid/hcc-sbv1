@@ -40,7 +40,7 @@ public final class Histogram {
         probabilities[i] = data[i] / total;
       }
     }
-  
+    
     return probabilities;
   }
   
@@ -131,7 +131,7 @@ public final class Histogram {
         }
         
         if (occurrences > 0) {
-        	occurringColors++;
+          occurringColors++;
           averageColor += color;
           
           if (color < minColor) {

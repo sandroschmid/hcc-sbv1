@@ -49,7 +49,7 @@ public final class Checkerboard implements ImageGenerator {
     
     final int segmentWidth = getSegmentCountQuotient(result.width);
     final int segmentHeight = getSegmentCountQuotient(result.height);
-  
+    
     LOGGER.info(String.format("Generating checkerboard '%s'", name));
     LOGGER.info(String.format(" > Image-Size:    %d x %d", result.width, result.height));
     LOGGER.info(String.format(" > Segments-Size: %d x %d", segmentWidth, segmentHeight));

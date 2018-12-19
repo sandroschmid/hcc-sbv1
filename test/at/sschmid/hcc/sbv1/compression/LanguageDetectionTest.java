@@ -19,7 +19,7 @@ public class LanguageDetectionTest {
   private static final boolean CREATE_CSV = false;
   private static final String FILES_DIR = "D:\\Documents\\Dropbox\\FH HGB\\HCC\\Semester "
       + "1\\SBV1\\UE\\UE02\\files\\lang\\modified\\";
-  private static final String[] LANGUAGES = new String[]{ "de", "en", "nl", "es", "prt", "fr", "it", "pl" };
+  private static final String[] LANGUAGES = new String[] { "de", "en", "nl", "es", "prt", "fr", "it", "pl" };
   
   static {
     LOGGER = Logger.getLogger(LanguageDetectionTest.class.getName());
@@ -35,10 +35,10 @@ public class LanguageDetectionTest {
     for (final String language : LANGUAGES) {
       final String referenceText = readFile(String.format("%srefs\\text_%s.txt", FILES_DIR, language));
       refTexts.put(language, referenceText);
-  
+      
       final LempelZivWelch zipOriginal = LempelZivWelch.encode(refTexts.get(language));
       refCrs.put(language, zipOriginal.getCompressionRatio());
-  
+      
       signalTexts.put(language, readFile(String.format("%ssignals\\detect_%s.txt", FILES_DIR, language)));
     }
   }
@@ -58,7 +58,7 @@ public class LanguageDetectionTest {
         if (!file.createNewFile()) {
           throw new IOException("Could not create file " + file.getName());
         }
-  
+        
         try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
           writer.write(combinedText);
         }
@@ -72,9 +72,9 @@ public class LanguageDetectionTest {
     CSV.setDefaultConfig(CSV.Config.defaults().withOutputDirectory(FILES_DIR + "\\csv\\"));
     try (final CSV csv = new CSV("analysis")) {
       csv.open();
-  
+      
       final FilebasedCRDelta[][] confusionMatrix = new FilebasedCRDelta[LANGUAGES.length][LANGUAGES.length];
-  
+      
       int x = 0;
       for (final String signalLang : LANGUAGES) {
         final List<FilebasedCRDelta> ratios = new ArrayList<>(LANGUAGES.length);
@@ -90,7 +90,7 @@ public class LanguageDetectionTest {
               FILES_DIR,
               refLang,
               signalLang));
-  
+          
           final FilebasedCRDelta delta = new FilebasedCRDelta(refLang,
               refFile.length(),
               refZipFile.length(),
@@ -99,7 +99,7 @@ public class LanguageDetectionTest {
           ratios.add(delta);
           confusionMatrix[x][y++] = delta;
         }
-  
+        
         ratios.sort(FilebasedCRDelta::compareTo);
         
         csv.addRow(csv.row().cell("Signal:").cell(signalLang.toUpperCase()))
@@ -112,7 +112,7 @@ public class LanguageDetectionTest {
                 .cell("Comb. Bytes (zipped)")
                 .cell("CR (combined)")
                 .cell("CR (delta)"));
-  
+        
         for (final FilebasedCRDelta ratio : ratios) {
           csv.addRow(csv.row()
               .cell(ratio.refLang.toUpperCase())
@@ -124,11 +124,11 @@ public class LanguageDetectionTest {
               .cell(String.format("%.4f", ratio.bytesRatio_combined_CombinedZip))
               .cell(String.format("%.4f", ratio.bytesRatioDelta)));
         }
-  
+        
         csv.emptyRow();
         x++;
       }
-  
+      
       csv.emptyRow().addRow(csv.row().cell("CONFUSION MATRIX"));
       final CSV.Row headerRow = csv.row().empty().cell("B(r)").cell("CR(r)");
       final CSV.Row subHeaderRow = csv.row().empty(3);
@@ -137,7 +137,7 @@ public class LanguageDetectionTest {
         subHeaderRow.cell("Rank").cell("B(r+s)").cell("CR(r+s)").cell("CR(d)");
       }
       csv.addRow(headerRow).addRow(subHeaderRow);
-  
+      
       for (x = 0; x < confusionMatrix.length; x++) {
         final String lang = LANGUAGES[x];
         final List<FilebasedCRDelta> sortedDeltas = Arrays.stream(confusionMatrix[x])
@@ -231,7 +231,7 @@ public class LanguageDetectionTest {
       if (CREATE_CSV) {
         csv.open();
       }
-  
+      
       final String signalText = signalTexts.get(signalLanguage);
       if (CREATE_CSV) {
         final LempelZivWelch signalZip = LempelZivWelch.encode(signalText);
@@ -249,7 +249,7 @@ public class LanguageDetectionTest {
         final LempelZivWelch combinedZip = LempelZivWelch.encode(combinedText);
         deltas.add(new CRDelta(refLang, refZip.getCompressionRatio(), combinedZip.getCompressionRatio()));
       }
-  
+      
       if (CREATE_CSV) {
         for (final CRDelta delta : deltas) {
           csv.addRow(csv.row().cell(String.format("CR (%s)", delta.refLang)).cell(delta.crRef))

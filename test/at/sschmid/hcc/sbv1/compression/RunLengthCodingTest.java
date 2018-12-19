@@ -13,10 +13,10 @@ public class RunLengthCodingTest {
     final RunLengthCoding.Config config = new RunLengthCoding.Config()
         .withBinary(true)
         .withBinaryStart(BINARY_START);
-  
+    
     test("010101", "111111", 1, config);
     test("0101111001", "111421", 1.6667, config);
-  
+    
     config.setMaxOccurrences(MAX_OCCURRENCES_TEST);
     test("010101", "111111", 1, config);
     test("0101111001", "11130121", 1.25, config);
@@ -27,10 +27,10 @@ public class RunLengthCodingTest {
     final RunLengthCoding.Config config = new RunLengthCoding.Config()
         .withBinary(true)
         .withBinaryStart(BINARY_START);
-  
+    
     test("101010", "0111111", 0.8571, config);
     test("101011111001", "01111521", 1.5, config);
-  
+    
     config.setMaxOccurrences(MAX_OCCURRENCES_TEST);
     test("101010", "0111111", 0.8571, config);
     test("101011111001", "0111130221", 1.2, config);
@@ -39,7 +39,7 @@ public class RunLengthCodingTest {
   @Test
   public void nonBinary() {
     final RunLengthCoding.Config config = new RunLengthCoding.Config();
-  
+    
     test("aaaaaaaaa", "a9", 4.5, config);
     test("aaaaaaaab", "a8b", 3, config);
     test("aaaabaaaa", "a4ba4", 1.8, config);
@@ -51,7 +51,7 @@ public class RunLengthCodingTest {
     test("abcaaaacbbaaccc", "abca4cb2a2c3", 1.25, config);
     test("abbcaaaaaaaaacbbaaccc", "ab2ca9cb2a2c3", 1.6154, config);
     test("abbcaaaaacbbaacccd", "ab2ca5cb2a2c3d", 1.2857, config);
-  
+    
     config.setMaxOccurrences(MAX_OCCURRENCES_TEST);
     test("ab", "ab", 1, config);
     test("aabb", "a2b2", 1, config);

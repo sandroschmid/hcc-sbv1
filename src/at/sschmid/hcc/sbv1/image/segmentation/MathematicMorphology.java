@@ -125,7 +125,7 @@ final class MathematicMorphology {
             }
           }
         }
-  
+        
         if (matching / structureSize >= quality) {
           points.add(new Point(x, y));
         }

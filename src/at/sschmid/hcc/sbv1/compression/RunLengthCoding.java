@@ -59,17 +59,17 @@ public final class RunLengthCoding {
   }
   
   public static class Config {
-  
+    
     private static final int MAX_MAX_OCCURRENCES = 9;
-  
+    
     private int maxOccurrences = MAX_MAX_OCCURRENCES;
     private boolean isBinary = false;
     private BinaryValue binaryStart = BinaryValue.Zero;
-  
+    
     public void setMaxOccurrences(final int maxOccurrences) {
       this.maxOccurrences = Math.max(Math.min(maxOccurrences, MAX_MAX_OCCURRENCES), 0);
     }
-  
+    
     public Config withMaxOccurrences(final int maxOccurrences) {
       setMaxOccurrences(maxOccurrences);
       return this;
@@ -133,7 +133,7 @@ public final class RunLengthCoding {
       
       return i - start;
     }
-  
+    
     int intValue(final char symbol) throws NumberFormatException {
       return Integer.parseInt(String.valueOf(symbol));
     }
@@ -155,7 +155,7 @@ public final class RunLengthCoding {
         int occurrences = getOccurrences(currentSymbol, i);
         resultBuilder.append(currentSymbol);
         i += occurrences;
-  
+        
         // add occurrences with respect of max allowed occurrences before an empty symbol switch is required
         while (occurrences > config.maxOccurrences) {
           resultBuilder.append(config.maxOccurrences).append(currentSymbol);
@@ -207,7 +207,7 @@ public final class RunLengthCoding {
         if (i == 0 && currentSymbol != config.binaryStart) { // skip start symbol if first input-symbol is not equal
           resultBuilder.append(0);
         }
-  
+        
         i += occurrences;
         
         // add occurrences with respect of max allowed occurrences before an empty symbol switch is required

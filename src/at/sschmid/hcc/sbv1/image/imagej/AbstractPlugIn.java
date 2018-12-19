@@ -18,7 +18,7 @@ public abstract class AbstractPlugIn implements PlugInFilter {
   private static final String RESULT_IMAGE_NAME_FORMAT = "Result %02d for '%s'";
   
   protected final String pluginName;
-
+  
   protected ImagePlus imagePlus;
   
   private final List<Image> results = new ArrayList<>();
@@ -34,10 +34,10 @@ public abstract class AbstractPlugIn implements PlugInFilter {
       showAbout();
       return DONE;
     }
-
+    
     return getSetupMask();
   }
-
+  
   protected int getSetupMask() {
     return DOES_8G + DOES_STACKS + SUPPORTS_MASKING;
   }
@@ -54,7 +54,7 @@ public abstract class AbstractPlugIn implements PlugInFilter {
       final int resultNumber = results.size() + 1;
       image.withName(String.format(RESULT_IMAGE_NAME_FORMAT, resultNumber, pluginName));
     }
-  
+    
     results.add(image);
   }
   
@@ -69,11 +69,11 @@ public abstract class AbstractPlugIn implements PlugInFilter {
   protected final void addResult(final ImageGenerator transformation, final String name) {
     addResult(transformation.getResult(), name);
   }
-
+  
   protected void process(final Image image) {
     throw new RuntimeException("Not implemented");
   }
-
+  
   protected void process(final ImageProcessor imageProcessor, final Image image) {
     process(image);
   }

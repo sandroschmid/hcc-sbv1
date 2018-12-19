@@ -875,7 +875,7 @@ public final class CSV implements AutoCloseable {
       }
       return this;
     }
-  
+    
     /**
      * Adds a cell with a {@code char}-value. Once added, a cell cannot be changed anymore.
      *
@@ -885,7 +885,7 @@ public final class CSV implements AutoCloseable {
     public Row cell(final char value) {
       return cell(value, 1);
     }
-  
+    
     /**
      * Adds a cell {@code n} times with a {@code char}-value. Once added, a cell cannot be changed anymore.
      *
@@ -896,7 +896,7 @@ public final class CSV implements AutoCloseable {
     public Row cell(final char value, final int n) {
       return cell(String.valueOf(value), n);
     }
-  
+    
     /**
      * Adds a cell for each {@code char}-value in the array. Once added, a cell cannot be changed anymore.
      *
@@ -909,7 +909,7 @@ public final class CSV implements AutoCloseable {
       }
       return this;
     }
-  
+    
     /**
      * Adds a cell with a {@link Object}-value. Once added, a cell cannot be changed anymore.
      *
@@ -919,7 +919,7 @@ public final class CSV implements AutoCloseable {
     public Row cell(final Object value) {
       return cell(value, 1);
     }
-  
+    
     /**
      * Adds a cell {@code n} times with a {@link Object}-value. Once added, a cell cannot be changed anymore.
      *
@@ -944,7 +944,7 @@ public final class CSV implements AutoCloseable {
         return cell(String.valueOf(value), n);
       }
     }
-  
+    
     /**
      * Adds a cell for each {@link Object}-value in the array. Once added, a cell cannot be changed anymore.
      *

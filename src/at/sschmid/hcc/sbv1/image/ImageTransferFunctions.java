@@ -74,7 +74,6 @@ public final class ImageTransferFunctions {
    */
   public static int[] GetHistogramEqualizationTF2(final Image image) {
     int[] returnTF = new int[image.maxColor + 1];
-  
     int[] histogram = image.histogram().getData();
     int expectation = (int) Math.floor((image.size - histogram[0]) / (double) (histogram.length - 1));
     

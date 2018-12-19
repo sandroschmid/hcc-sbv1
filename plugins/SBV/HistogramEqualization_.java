@@ -17,7 +17,7 @@ public final class HistogramEqualization_ extends AbstractPlugIn {
       if (tf == null) {
         continue;
       }
-  
+      
       final Image resultImg = image.transformation().transfer(tf).getResult();
       addResult(resultImg, String.format("%s #%d", pluginName, i + 1));
     }

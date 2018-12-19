@@ -1,7 +1,7 @@
 package at.sschmid.hcc.sbv1.image.segmentation;
 
 public final class BinaryThreshold {
-
+  
   public final int thresholdMin;
   public final Integer thresholdMax;
   public final int background;
@@ -28,12 +28,12 @@ public final class BinaryThreshold {
     for (; i < foregroundStart; i++) {
       transferFunction[i] = background;
     }
-  
+    
     final int foregroundEnd = Math.min((thresholdMax == null ? maxVal : thresholdMax), maxVal);
     for (; i <= foregroundEnd; i++) {
       transferFunction[i] = foreground;
     }
-  
+    
     for (; i <= maxVal; i++) {
       transferFunction[i] = background;
     }

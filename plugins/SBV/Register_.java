@@ -42,7 +42,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
           .transform(input.getTransformations(), Interpolation.Mode.BiLinear)
           .getResult();
     }
-  
+    
     registration(originalImage, transformedImage);
   }
   
@@ -90,12 +90,12 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
       image1 = originalImage;
       image2 = transformedImage;
     }
-  
+    
     final ErrorMetric errorMetric = ErrorMetric.create(input.errorMetricType);
     final double initialError = errorMetric.getError(image1, image2);
     addResult(image1, String.format("%s - image 1", pluginName));
     addResult(image2, String.format("%s - image 2 (e=%s)", pluginName, initialError));
-  
+    
     final Transformations bestTransformations = Registration.create()
         .errorMetric(errorMetric)
         .stepWidthTranslation(input.stepWidthTranslation)
@@ -105,17 +105,17 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
         .scalePerRun(input.scalePerRun)
         .build()
         .register(image1, image2);
-  
+    
     if (bestTransformations == null) {
       IJ.log("Could not find a transformation");
       return;
     }
-  
+    
     final Image registeredImage = image2.transformation()
         .transform(bestTransformations, Interpolation.Mode.BiLinear)
         .getResult();
     addResult(registeredImage, String.format("%s - registered image", pluginName));
-  
+    
     Image registeredImageNoEdges;
     if (input.useEdges) {
       registeredImageNoEdges = transformedImage.transformation()
@@ -125,17 +125,17 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     } else {
       registeredImageNoEdges = registeredImage;
     }
-  
+    
     addResult(originalImage.calculation(registeredImageNoEdges).difference());
   }
   
   static class Input {
-  
+    
     private final boolean splitImage;
     private final double translationX;
     private final double translationY;
     private final double rotation;
-  
+    
     private final ErrorMetricType errorMetricType;
     private final int searchRadius;
     private final double stepWidthTranslation;
@@ -143,7 +143,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     private final int optimizationRuns;
     private final double scalePerRun;
     private final boolean useEdges;
-  
+    
     Input(final boolean splitImage,
           final double translationX,
           final double translationY,
@@ -167,13 +167,13 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
       this.scalePerRun = scalePerRun;
       this.useEdges = useEdges;
     }
-  
+    
     @Override
     public String toString() {
       final StringBuilder result = new StringBuilder()
           .append("Input {\n  Transformation:\n   splitImage=")
           .append(splitImage);
-    
+      
       if (!splitImage) {
         result.append(",\n   translationX=")
             .append(translationX)
@@ -182,7 +182,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
             .append(",\n   rotation=")
             .append(rotation);
       }
-    
+      
       return result.append(",\n  Registration:\n   errorMetricType=")
           .append(errorMetricType)
           .append(",\n   searchRadius=")

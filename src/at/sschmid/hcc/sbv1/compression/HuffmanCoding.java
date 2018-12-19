@@ -102,9 +102,9 @@ public final class HuffmanCoding {
     if (result != null) {
       return; // do not encode twice
     }
-  
+    
     buildHistogram();
-  
+    
     // Sort huffman symbols and assign each symbol's code
     final List<HuffmanSymbol> symbols = getSymbols();
     final int symbolsLength = symbols.size();
@@ -118,12 +118,12 @@ public final class HuffmanCoding {
         symbol.setCode(codeBuilder.toString());
         codeBuilder.insert(0, "0");
       }
-    
+      
       if (i < symbolsLength) {
         symbols.get(i).setCode(codeBuilder.substring(0, codeBuilder.length() - 1));
       }
     }
-  
+    
     // Build final result
     final StringBuilder resultBuilder = new StringBuilder();
     final int inputLength = input.length();
@@ -131,7 +131,7 @@ public final class HuffmanCoding {
       final HuffmanSymbol symbol = histogram.get(input.charAt(i));
       resultBuilder.append(symbol.code);
     }
-  
+    
     result = resultBuilder.toString();
   }
   

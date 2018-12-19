@@ -26,14 +26,14 @@ public final class RegionGrowing_ extends AbstractUserInputPlugIn<RegionGrowing_
   @Override
   protected void process(final Image image) {
     final Point[] seeds = getSeedPoints();
-  
+    
     final Segmentation segmentation = image.segmentation();
     final Image resultGrowing = segmentation.regionGrowing(seeds, input.nb, input.bt);
     final Image resultLabelling = segmentation.regionLabelling(seeds, input.nb, input.bt);
     
     addResult(resultGrowing, String.format("%s (%s)", pluginName, input.nb));
     addResult(resultLabelling, String.format("%s (%s with labelling)", pluginName, input.nb));
-  
+    
     addResult(image.calculation(resultGrowing).and());
   }
   
@@ -68,7 +68,7 @@ public final class RegionGrowing_ extends AbstractUserInputPlugIn<RegionGrowing_
         (int) dialog.getNextNumber(),
         (int) dialog.getNextNumber(),
         (int) dialog.getNextNumber());
-  
+    
     return new Input(Neighbour.values()[dialog.getNextChoiceIndex()], binaryThreshold);
   }
   

@@ -8,7 +8,7 @@ public final class Invert_ extends AbstractPlugIn {
   protected void process(final Image image) {
     final int[] invertTF = ImageTransferFunctions.GetInversionTF(255);
     final Image resultImg = image.transformation().transfer(invertTF).getResult();
-  
+    
     addResult(resultImg, String.format("%s - v1", pluginName));
     addResult(image.transformation().invert(), String.format("%s - v2", pluginName));
   }

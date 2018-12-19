@@ -23,12 +23,12 @@ public class LempelZivWelchTest {
   public void encoding1() {
     final String input = "ababbbaab";
     final LempelZivWelch zip = LempelZivWelch.encode(input);
-  
+    
     csv(zip, "encoding1");
     
     final int resultSize = zip.getResultSize();
     final double compressionRatio = zip.getCompressionRatio();
-  
+    
     Assert.assertEquals(resultSize, zip.getSteps().size());
     Assert.assertEquals("97|98|256|98|257|256", zip.getResult());
     Assert.assertEquals(6, resultSize);
@@ -42,12 +42,12 @@ public class LempelZivWelchTest {
   public void encoding2() {
     final String input = "ababbbaabbcdcdcdcabbc";
     final LempelZivWelch zip = LempelZivWelch.encode(input);
-  
+    
     csv(zip, "encoding2");
     
     final int resultSize = zip.getResultSize();
     final double compressionRatio = zip.getCompressionRatio();
-  
+    
     Assert.assertEquals(resultSize, zip.getSteps().size());
     Assert.assertEquals("97|98|256|98|257|258|99|100|262|264|261", zip.getResult());
     Assert.assertEquals(11, resultSize);
@@ -64,12 +64,12 @@ public class LempelZivWelchTest {
   public void encoding3() {
     final String input = "abababbbaaaabababccddda";
     final LempelZivWelch zip = LempelZivWelch.encode(input);
-  
+    
     csv(zip, "encoding3");
     
     final int resultSize = zip.getResultSize();
     final double compressionRatio = zip.getCompressionRatio();
-  
+    
     Assert.assertEquals(resultSize, zip.getSteps().size());
     Assert.assertEquals("97|98|256|256|98|257|97|262|257|264|99|99|100|268|97", zip.getResult());
     Assert.assertEquals(15, resultSize);
@@ -130,7 +130,7 @@ public class LempelZivWelchTest {
   
   @Test
   public void minCr() {
-    final LempelZivWelch[] zips = new LempelZivWelch[]{
+    final LempelZivWelch[] zips = new LempelZivWelch[] {
         LempelZivWelch.encode("abcacbbacbcacabcba"),
         LempelZivWelch.encode("abccbbfghacbij"),
         LempelZivWelch.encode("abcdefghij"),

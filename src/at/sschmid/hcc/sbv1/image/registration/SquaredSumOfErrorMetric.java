@@ -19,7 +19,7 @@ final class SquaredSumOfErrorMetric implements ErrorMetric {
         sseSum += diff * diff;
       }
     }
-  
+    
     return sseSum;
   }
   

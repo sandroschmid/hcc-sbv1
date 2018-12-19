@@ -47,7 +47,7 @@ public final class DistanceMap {
         if (Double.isFinite(distanceMap[x][y])) {
           continue;
         }
-  
+        
         i = 0x0;
         distances[i++] = distanceMap[x][y - 1] + distanceMetric.value[1][0]; // top
         
@@ -73,7 +73,7 @@ public final class DistanceMap {
         if (Double.isFinite(distanceMap[x][y])) {
           continue;
         }
-  
+        
         i = 0x0;
         distances[i++] = distanceMap[x][y + 1] + distanceMetric.value[1][2]; // bottom
         
@@ -114,9 +114,9 @@ public final class DistanceMap {
         { 1, 0, 1 },
         { 1.41, 1, 1.41 }
     });
-  
+    
     private final double[][] value;
-  
+    
     DistanceMetric(final double[][] value) {
       this.value = value;
     }

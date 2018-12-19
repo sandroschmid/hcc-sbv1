@@ -76,7 +76,7 @@ public final class LempelZivWelch {
           .addRow(csv.row()
               .cell("CR:")
               .cell(String.format("1 / (%d / %d) = %.3f", resultLength, inputLength, getCompressionRatio())));
-  
+      
       if (!steps.isEmpty()) {
         csv.emptyRow()
             .addRow(csv.row().cell(String.format("%d STEPS:", steps.size())))
@@ -87,7 +87,7 @@ public final class LempelZivWelch {
                 .cell("Words")
                 .cell("Dictionary")
                 .cell("Result"));
-    
+        
         for (final Step step : steps) {
           csv.addRow(csv.row()
               .cell(step.symbolIndex)
@@ -100,7 +100,7 @@ public final class LempelZivWelch {
               .cell(String.format("%s <%d>", step.output.getKey(), step.output.getValue())));
         }
       }
-  
+      
       csv.emptyRow();
       if (dictionary.isEmpty()) {
         csv.addRow(csv.row().cell("Dictionary is empty."));
@@ -114,7 +114,7 @@ public final class LempelZivWelch {
           csv.addRow(csv.row().cell(entry.getValue()).cell(entry.getKey()));
         }
       }
-  
+      
       buildInvertedDictionary();
       csv.emptyRow()
           .addRow(csv.row().cell("RESULT:"))
@@ -141,17 +141,17 @@ public final class LempelZivWelch {
       int nextSymbolIndex = i;
       final char currentSymbol = input.charAt(nextSymbolIndex++);
       int output = (int) currentSymbol;
-  
+      
       if (nextSymbolIndex == inputLength) {
         // already at last character in input string
         steps.add(new StepBuilder(i, currentSymbol).build());
         result.add(output);
         continue;
       }
-  
+      
       final char nextSymbol = input.charAt(nextSymbolIndex++);
       final StepBuilder step = new StepBuilder(i, currentSymbol, nextSymbol);
-  
+      
       String word = null;
       int translation = -1;
       String nextWord = String.format("%s%s", currentSymbol, nextSymbol);
@@ -167,20 +167,20 @@ public final class LempelZivWelch {
         }
         i++; // skip next characters included in used translation
       }
-  
+      
       if (!dictionary.containsKey(nextWord)) {
         step.addWord(nextWord);
         step.setDictionaryWord(nextWord);
         dictionary.put(nextWord, maxTranslation++);
       }
-  
+      
       if (word != null) {
         step.setOutput(word, translation);
         output = translation;
       } else {
         step.setOutput(String.valueOf(currentSymbol), output);
       }
-  
+      
       steps.add(step.build());
       result.add(output);
     }
@@ -202,7 +202,7 @@ public final class LempelZivWelch {
     private final SortedSet<String> words;
     private final String dictionaryWord;
     private final Map.Entry<String, Integer> output;
-  
+    
     private Step(final int symbolIndex,
                  final char currentSymbol,
                  final Character nextSymbol,
@@ -225,33 +225,33 @@ public final class LempelZivWelch {
     private final char currentSymbol;
     private final Character nextSymbol;
     private final SortedSet<String> words = new TreeSet<>(Comparator.comparingInt(String::length));
-  
+    
     private String dictionaryWord;
     private Map.Entry<String, Integer> output;
-  
+    
     private StepBuilder(final int symbolIndex, final char currentSymbol) {
       this(symbolIndex, currentSymbol, null);
       setOutput(String.valueOf(currentSymbol), (int) currentSymbol);
     }
-  
+    
     private StepBuilder(final int symbolIndex, final char currentSymbol, final Character nextSymbol) {
       this.symbolIndex = symbolIndex;
       this.currentSymbol = currentSymbol;
       this.nextSymbol = nextSymbol;
     }
-  
+    
     private void addWord(final String word) {
       words.add(word);
     }
-  
+    
     private void setDictionaryWord(final String dictionaryWord) {
       this.dictionaryWord = dictionaryWord;
     }
-  
+    
     private void setOutput(final String word, final int output) {
       this.output = new AbstractMap.SimpleImmutableEntry<>(word, output);
     }
-  
+    
     private Step build() {
       return new Step(symbolIndex, currentSymbol, nextSymbol, words, dictionaryWord, output);
     }

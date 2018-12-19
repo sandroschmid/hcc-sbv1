@@ -13,7 +13,7 @@ public final class Resample_ extends AbstractUserInputPlugIn<Double> {
     final Image scaledImgNN = image.transformation()
         .transform(new Transformations().scale(input), Interpolation.Mode.NearestNeighbour)
         .getResult();
-  
+    
     final Image scaledImgBiLin = image.transformation()
         .transform(new Transformations().scale(input), Interpolation.Mode.BiLinear)
         .getResult();

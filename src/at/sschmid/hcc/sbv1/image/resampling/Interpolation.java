@@ -34,7 +34,7 @@ public final class Interpolation {
     
     final double xPercentage = x - p1.x;
     final double yPercentage = y - p1.y;
-  
+    
     final int p1Color = p1.x >= 0 && p1.x < image.width && p1.y >= 0 && p1.y < image.height
         ? image.data[p1.x][p1.y]
         : BG_COLOR;
@@ -51,7 +51,7 @@ public final class Interpolation {
     final double interpolatedColor1 = p1Color + xPercentage * (p2Color - p1Color);
     final double interpolatedColor2 = p3Color + xPercentage * (p4Color - p3Color);
     final double interpolatedColor3 = interpolatedColor1 + yPercentage * (interpolatedColor2 - interpolatedColor1);
-  
+    
     return Math.max(Math.min((int) interpolatedColor3, image.maxColor), 0);
   }
   

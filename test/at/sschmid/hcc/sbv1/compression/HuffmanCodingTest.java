@@ -19,11 +19,11 @@ public class HuffmanCodingTest {
   public void encoding1() {
     final String input = "ababba";
     final HuffmanCoding coding = HuffmanCoding.encode(input);
-  
+    
     final byte bitsPerSymbol = coding.getBitsPerSymbol();
     final int resultSize = coding.getResultSize();
     final double compressionRatio = coding.getCompressionRatio();
-  
+    
     Assert.assertEquals("101001", coding.getResult());
     Assert.assertEquals("1|0|1|0|0|1", coding.getDelimitedResult());
     Assert.assertEquals(6, resultSize);

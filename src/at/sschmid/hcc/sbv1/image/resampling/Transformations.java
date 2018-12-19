@@ -72,7 +72,7 @@ public final class Transformations {
       this.x = x;
       this.y = y;
     }
-  
+    
     @Override
     public String toString() {
       return String.format("Transform [%.3f, %.3f]", x, y);
@@ -87,7 +87,7 @@ public final class Transformations {
     private Rotation(final double degrees) {
       this.radians = Math.toRadians(degrees);
     }
-  
+    
     @Override
     public String toString() {
       return String.format("Rotation %.3f (rad)", radians);
@@ -102,7 +102,7 @@ public final class Transformations {
     private Scale(final double factor) {
       this.factor = factor;
     }
-  
+    
     @Override
     public String toString() {
       return String.format("Scale %.3f", factor);

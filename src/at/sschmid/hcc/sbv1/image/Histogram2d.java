@@ -48,7 +48,7 @@ public final class Histogram2d {
         }
       }
     }
-  
+    
     return probabilities;
   }
   

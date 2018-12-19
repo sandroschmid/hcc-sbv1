@@ -73,12 +73,8 @@ public final class Median_ extends AbstractUserInputPlugIn<Integer> {
         Arrays.sort(mask);
         resultImg.data[x][y] = mask[maskIdx / 2];
         
-        final double avg = Arrays.stream(mask)
-            .average()
-            .orElse(0);
-        final double sumOfAbsDiffs = Arrays.stream(mask)
-            .mapToDouble(n -> Math.pow(n - avg, 2))
-            .sum();
+        final double avg = Arrays.stream(mask).average().orElse(0);
+        final double sumOfAbsDiffs = Arrays.stream(mask).mapToDouble(n -> Math.pow(n - avg, 2)).sum();
         final double stdDev = Math.sqrt(sumOfAbsDiffs / (mask.length - 1));
         
         csv.addRow(csv.row()
@@ -101,7 +97,7 @@ public final class Median_ extends AbstractUserInputPlugIn<Integer> {
                 .toArray()));
       }
     }
-  
+    
     LOGGER.info(String.format("Median-Filter %ss", (System.currentTimeMillis() - start) / 1000d));
     
     return resultImg;

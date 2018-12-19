@@ -51,11 +51,11 @@ public final class HitOrMiss_ extends AbstractUserInputPlugIn<HitOrMiss_.Input> 
   }
   
   static final class Input {
-  
+    
     private final double quality;
     private final int rectWidth;
     private final int rectHeight;
-  
+    
     Input(final double quality, final int rectWidth, final int rectHeight) {
       this.quality = quality;
       this.rectWidth = rectWidth;

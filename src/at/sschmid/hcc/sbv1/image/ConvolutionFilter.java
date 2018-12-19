@@ -271,7 +271,7 @@ public final class ConvolutionFilter {
     final double[][] returnImg = new double[width][height];
     final double[][] sobelV = new double[][] { { 1.0, 0.0, -1.0 }, { 2.0, 0.0, -2.0 }, { 1.0, 0.0, -1.0 } };
     final double[][] sobelH = new double[][] { { 1.0, 2.0, 1.0 }, { 0.0, 0.0, 0.0 }, { -1.0, -2.0, -1.0 } };
-  
+    
     final int radius = 1;
     final double[][] resultSobelV = ConvolveDouble(inputImg, width, height, sobelV, radius);
     final double[][] resultSobelH = ConvolveDouble(inputImg, width, height, sobelH, radius);
