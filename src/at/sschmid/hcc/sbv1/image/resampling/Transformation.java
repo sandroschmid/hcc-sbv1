@@ -1,4 +1,7 @@
-package at.sschmid.hcc.sbv1.image;
+package at.sschmid.hcc.sbv1.image.resampling;
+
+import at.sschmid.hcc.sbv1.image.Image;
+import at.sschmid.hcc.sbv1.image.ImageGenerator;
 
 import java.util.logging.Logger;
 

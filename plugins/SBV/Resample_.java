@@ -1,7 +1,7 @@
-import at.sschmid.hcc.sbv1.image.AbstractUserInputPlugIn;
 import at.sschmid.hcc.sbv1.image.Image;
-import at.sschmid.hcc.sbv1.image.Interpolation;
-import at.sschmid.hcc.sbv1.image.Transformations;
+import at.sschmid.hcc.sbv1.image.imagej.AbstractUserInputPlugIn;
+import at.sschmid.hcc.sbv1.image.resampling.Interpolation;
+import at.sschmid.hcc.sbv1.image.resampling.Transformations;
 import ij.gui.GenericDialog;
 
 public final class Resample_ extends AbstractUserInputPlugIn<Double> {

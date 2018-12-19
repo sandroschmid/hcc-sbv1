@@ -1,6 +1,6 @@
-package at.sschmid.hcc.sbv1.image;
+package at.sschmid.hcc.sbv1.image.registration;
 
-import at.sschmid.hcc.sbv1.image.registration.DistanceMap;
+import at.sschmid.hcc.sbv1.image.Image;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

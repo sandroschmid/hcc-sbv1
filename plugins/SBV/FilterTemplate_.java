@@ -1,5 +1,5 @@
-import at.sschmid.hcc.sbv1.image.AbstractPlugIn;
 import at.sschmid.hcc.sbv1.image.Image;
+import at.sschmid.hcc.sbv1.image.imagej.AbstractPlugIn;
 
 public final class FilterTemplate_ extends AbstractPlugIn {
   

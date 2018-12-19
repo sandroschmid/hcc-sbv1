@@ -7,11 +7,11 @@ public final class SplitImage {
   private final int splitWidth;
   private final Set<Image> images;
   
-  SplitImage(final Image image) {
+  public SplitImage(final Image image) {
     this(image, 2);
   }
   
-  SplitImage(final Image image, final int n) {
+  public SplitImage(final Image image, final int n) {
     this.images = new LinkedHashSet<>(n, 1.1f);
     this.splitWidth = image.width / n;
     

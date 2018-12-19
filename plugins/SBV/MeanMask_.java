@@ -1,7 +1,7 @@
-import at.sschmid.hcc.sbv1.image.AbstractUserInputPlugIn;
 import at.sschmid.hcc.sbv1.image.ConvolutionFilter;
 import at.sschmid.hcc.sbv1.image.Image;
-import at.sschmid.hcc.sbv1.image.ImageJUtility;
+import at.sschmid.hcc.sbv1.image.imagej.AbstractUserInputPlugIn;
+import at.sschmid.hcc.sbv1.image.imagej.ImageJUtility;
 import ij.gui.GenericDialog;
 
 public final class MeanMask_ extends AbstractUserInputPlugIn<Integer> {

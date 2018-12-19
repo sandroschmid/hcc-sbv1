@@ -1,5 +1,6 @@
-package at.sschmid.hcc.sbv1.image;
+package at.sschmid.hcc.sbv1.image.segmentation;
 
+import at.sschmid.hcc.sbv1.image.Image;
 import at.sschmid.hcc.sbv1.utility.Point;
 
 import java.util.Collection;

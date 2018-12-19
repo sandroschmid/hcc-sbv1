@@ -1,5 +1,6 @@
-package at.sschmid.hcc.sbv1.image;
+package at.sschmid.hcc.sbv1.image.resampling;
 
+import at.sschmid.hcc.sbv1.image.Image;
 import at.sschmid.hcc.sbv1.utility.Point;
 
 public final class Interpolation {
@@ -8,7 +9,7 @@ public final class Interpolation {
   
   private final Image image;
   
-  Interpolation(final Image image) {
+  public Interpolation(final Image image) {
     this.image = image;
   }
   

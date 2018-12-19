@@ -18,7 +18,7 @@ public final class Histogram2d {
   private int maxColor;
   private double averageColor;
   
-  Histogram2d(final Image image1, final Image image2) {
+  public Histogram2d(final Image image1, final Image image2) {
     if (!image1.sizeEqualsTo(image2)) {
       throw new IllegalArgumentException("Images for 2d histograms must be of equal sizes");
     }

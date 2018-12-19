@@ -1,4 +1,4 @@
-package at.sschmid.hcc.sbv1.image;
+package at.sschmid.hcc.sbv1.image.segmentation;
 
 public enum Neighbour {
   N4(new int[][] {

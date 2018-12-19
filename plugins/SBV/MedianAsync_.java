@@ -1,5 +1,5 @@
-import at.sschmid.hcc.sbv1.image.AbstractUserInputPlugIn;
 import at.sschmid.hcc.sbv1.image.Image;
+import at.sschmid.hcc.sbv1.image.imagej.AbstractUserInputPlugIn;
 import at.sschmid.hcc.sbv1.utility.Utility;
 import ij.gui.GenericDialog;
 

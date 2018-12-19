@@ -1,4 +1,8 @@
-import at.sschmid.hcc.sbv1.image.*;
+import at.sschmid.hcc.sbv1.image.Image;
+import at.sschmid.hcc.sbv1.image.imagej.AbstractUserInputPlugIn;
+import at.sschmid.hcc.sbv1.image.resampling.Interpolation;
+import at.sschmid.hcc.sbv1.image.resampling.Transformation;
+import at.sschmid.hcc.sbv1.image.resampling.Transformations;
 import ij.gui.GenericDialog;
 
 import java.util.regex.Pattern;

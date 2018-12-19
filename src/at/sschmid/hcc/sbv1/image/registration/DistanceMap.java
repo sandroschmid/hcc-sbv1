@@ -1,4 +1,6 @@
-package at.sschmid.hcc.sbv1.image;
+package at.sschmid.hcc.sbv1.image.registration;
+
+import at.sschmid.hcc.sbv1.image.Image;
 
 public final class DistanceMap {
   
@@ -7,7 +9,7 @@ public final class DistanceMap {
   
   private double[][] distanceMap;
   
-  DistanceMap(final Image image, final DistanceMetric distanceMetric) {
+  public DistanceMap(final Image image, final DistanceMetric distanceMetric) {
     this.image = image;
     this.distanceMetric = distanceMetric;
   }

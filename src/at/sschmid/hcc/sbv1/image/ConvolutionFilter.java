@@ -58,7 +58,7 @@ public final class ConvolutionFilter {
     return returnImg;
   }
   
-  // unsaubere Impl am Rand, dort m�sste normalisiert werden (wenn zB nur 6 Felder
+  // unsaubere Impl am Rand, dort müsste normalisiert werden (wenn zB nur 6 Felder
   // in der Maske sind statt 9, dann wird nicht durch 9 dividiert sondern durch 6)
   public static double[][] ConvolveDouble(double[][] inputImg, int width, int height, double[][] kernel, int radius) {
     double[][] returnImg = new double[width][height];

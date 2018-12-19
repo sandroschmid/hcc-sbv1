@@ -1,6 +1,6 @@
-import at.sschmid.hcc.sbv1.image.AbstractPlugIn;
 import at.sschmid.hcc.sbv1.image.Image;
 import at.sschmid.hcc.sbv1.image.ImageTransferFunctions;
+import at.sschmid.hcc.sbv1.image.imagej.AbstractPlugIn;
 
 public final class HistogramEqualization_ extends AbstractPlugIn {
   

@@ -1,6 +1,6 @@
-import at.sschmid.hcc.sbv1.image.AbstractUserInputPlugIn;
-import at.sschmid.hcc.sbv1.image.BinaryThreshold;
 import at.sschmid.hcc.sbv1.image.Image;
+import at.sschmid.hcc.sbv1.image.imagej.AbstractUserInputPlugIn;
+import at.sschmid.hcc.sbv1.image.segmentation.BinaryThreshold;
 import ij.gui.GenericDialog;
 
 public final class BinaryIntervalThreshold_ extends AbstractUserInputPlugIn<BinaryThreshold> {

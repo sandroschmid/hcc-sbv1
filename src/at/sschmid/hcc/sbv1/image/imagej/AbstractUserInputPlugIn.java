@@ -1,4 +1,4 @@
-package at.sschmid.hcc.sbv1.image;
+package at.sschmid.hcc.sbv1.image.imagej;
 
 import ij.IJ;
 import ij.gui.GenericDialog;

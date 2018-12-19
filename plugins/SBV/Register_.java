@@ -1,4 +1,9 @@
-import at.sschmid.hcc.sbv1.image.*;
+import at.sschmid.hcc.sbv1.image.Image;
+import at.sschmid.hcc.sbv1.image.SplitImage;
+import at.sschmid.hcc.sbv1.image.imagej.AbstractUserInputPlugIn;
+import at.sschmid.hcc.sbv1.image.resampling.Interpolation;
+import at.sschmid.hcc.sbv1.image.resampling.Transformation;
+import at.sschmid.hcc.sbv1.image.resampling.Transformations;
 import at.sschmid.hcc.sbv1.utility.Utility;
 import ij.gui.GenericDialog;
 

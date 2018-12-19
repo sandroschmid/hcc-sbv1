@@ -1,5 +1,8 @@
 import at.sschmid.hcc.sbv1.image.Image;
-import at.sschmid.hcc.sbv1.image.*;
+import at.sschmid.hcc.sbv1.image.imagej.AbstractUserInputPlugIn;
+import at.sschmid.hcc.sbv1.image.segmentation.BinaryThreshold;
+import at.sschmid.hcc.sbv1.image.segmentation.Neighbour;
+import at.sschmid.hcc.sbv1.image.segmentation.Segmentation;
 import at.sschmid.hcc.sbv1.utility.Point;
 import ij.gui.GenericDialog;
 import ij.gui.PointRoi;
