@@ -9,6 +9,8 @@ import ij.gui.PointRoi;
 
 import java.awt.*;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
 
 public final class RegionGrowing_ extends AbstractUserInputPlugIn<RegionGrowing_.Input> {
   
@@ -25,7 +27,7 @@ public final class RegionGrowing_ extends AbstractUserInputPlugIn<RegionGrowing_
   
   @Override
   protected void process(final Image image) {
-    final Point[] seeds = getSeedPoints();
+    final Collection<Point> seeds = getSeedPoints();
     
     final Segmentation segmentation = image.segmentation();
     final Image resultGrowing = segmentation.regionGrowing(seeds, input.nb, input.bt);
@@ -37,16 +39,15 @@ public final class RegionGrowing_ extends AbstractUserInputPlugIn<RegionGrowing_
     addResult(image.calculation(resultGrowing).and());
   }
   
-  private Point[] getSeedPoints() {
+  private Collection<Point> getSeedPoints() {
     final PointRoi roi = (PointRoi) imagePlus.getRoi();
     final Rectangle rect = roi.getBounds();
+    final int nPoints = roi.getCount(0);
     final int[] xCoords = roi.getXCoordinates();
     final int[] yCoords = roi.getYCoordinates();
-    final Point[] seeds = new Point[xCoords.length];
-    for (int i = 0; i < xCoords.length; i++) {
-      for (int j = 0; j < yCoords.length; j++) {
-        seeds[i] = new Point(xCoords[i] + rect.x, yCoords[i] + rect.y);
-      }
+    final Collection<Point> seeds = new LinkedList<>();
+    for (int i = 0; i < nPoints; i++) {
+      seeds.add(new Point(xCoords[i] + rect.x, yCoords[i] + rect.y));
     }
     return seeds;
   }

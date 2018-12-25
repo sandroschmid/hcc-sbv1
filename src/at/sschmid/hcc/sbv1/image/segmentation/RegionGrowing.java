@@ -4,6 +4,7 @@ import at.sschmid.hcc.sbv1.image.Image;
 import at.sschmid.hcc.sbv1.utility.Point;
 import ij.IJ;
 
+import java.util.Collection;
 import java.util.Stack;
 
 final class RegionGrowing {
@@ -16,11 +17,8 @@ final class RegionGrowing {
     this.image = image;
   }
   
-  Image regionGrowing(final Point[] seeds, final Neighbour neighbour, final BinaryThreshold binaryThreshold) {
+  Image regionGrowing(final Collection<Point> seeds, final Neighbour neighbour, final BinaryThreshold binaryThreshold) {
     final Image result = createUnprocessedImage();
-    
-    // non-recursive solution
-    final Stack<Point> processingStack = new Stack<>();
     
     for (final Point seed : seeds) {
       // check if seed point is valid
@@ -29,6 +27,9 @@ final class RegionGrowing {
           || (binaryThreshold.thresholdMax != null && seedValue > binaryThreshold.thresholdMax)) {
         continue;
       }
+  
+      // non-recursive solution
+      final Stack<Point> processingStack = new Stack<>();
       
       result.data[seed.x][seed.y] = binaryThreshold.foreground;
       processingStack.push(new Point(seed.x, seed.y));
@@ -73,22 +74,25 @@ final class RegionGrowing {
     return result;
   }
   
-  Image regionLabelling(final Point[] seeds, final Neighbour neighbour, final BinaryThreshold binaryThreshold) {
+  Image regionLabelling(final Collection<Point> seeds,
+                        final Neighbour neighbour,
+                        final BinaryThreshold binaryThreshold) {
     final Image result = createUnprocessedImage();
     
-    // non-recursive solution
-    final Stack<Point> processingStack = new Stack<>();
-    
-    int regionId = 255 - binaryThreshold.background;
+    int regionId = image.maxColor - binaryThreshold.background;
     final int regionIdInc = binaryThreshold.foreground > binaryThreshold.background ? -1 : 1;
     IJ.log(String.format("First region id: %d (inc: %d)", regionId, regionIdInc));
     for (final Point seed : seeds) {
       // check if seed point is valid
       final int seedValue = image.data[seed.x][seed.y];
       if (seedValue < binaryThreshold.thresholdMin
-          || (binaryThreshold.thresholdMax != null && seedValue > binaryThreshold.thresholdMax)) {
+          || (binaryThreshold.thresholdMax != null && seedValue > binaryThreshold.thresholdMax)
+          || result.data[seed.x][seed.y] != UNPROCESSED_VALUE) {
         continue;
       }
+  
+      // non-recursive solution
+      final Stack<Point> processingStack = new Stack<>();
       
       result.data[seed.x][seed.y] = regionId;
       processingStack.push(new Point(seed.x, seed.y));
