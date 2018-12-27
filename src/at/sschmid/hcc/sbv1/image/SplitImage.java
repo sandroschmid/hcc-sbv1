@@ -12,7 +12,7 @@ public final class SplitImage {
   }
   
   public SplitImage(final Image image, final int n) {
-    this.images = new LinkedHashSet<>(n, 1.1f);
+    this.images = new LinkedHashSet<>(n, 1.01f);
     this.splitWidth = image.width / n;
     
     Image currentSplit;
@@ -49,10 +49,9 @@ public final class SplitImage {
   }
   
   public Optional<Image> last() {
-    final Iterator<Image> iterator = images.iterator();
     Image lastImage = null;
-    while (iterator.hasNext()) {
-      lastImage = iterator.next();
+    for (final Image image : images) {
+      lastImage = image;
     }
     return Optional.ofNullable(lastImage);
   }

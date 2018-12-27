@@ -21,9 +21,9 @@ public final class Image {
   public final int height;
   public final int size;
   
-  public String name;
-  
   private final int imageCount;
+  
+  private String name;
   
   public Image(final Image image) {
     this(image, true);

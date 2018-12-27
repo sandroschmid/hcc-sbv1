@@ -80,7 +80,7 @@ public final class Histogram {
     
     final StringBuilder builder = new StringBuilder("Histogram");
     if (image.hasName()) {
-      builder.append(" (").append(image.name).append(")");
+      builder.append(" (").append(image.getName()).append(")");
     }
     
     return builder.append(" { count=")

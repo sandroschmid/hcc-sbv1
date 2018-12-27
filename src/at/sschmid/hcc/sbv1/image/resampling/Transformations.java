@@ -53,10 +53,11 @@ public final class Transformations {
       result.append("No transformations");
     } else {
       for (final TransformationItem item : items) {
-        result.append(item);
+        result.append(item).append(' ');
       }
     }
-    return result.toString();
+  
+    return result.toString().trim();
   }
   
   public interface TransformationItem {
@@ -90,7 +91,7 @@ public final class Transformations {
     
     @Override
     public String toString() {
-      return String.format("Rotation %.3f (rad)", radians);
+      return String.format("Rotation %.3f°", Math.toDegrees(radians));
     }
     
   }

@@ -88,7 +88,7 @@ public final class Histogram2d {
     
     final StringBuilder builder = new StringBuilder("Histogram");
     if (image1.hasName() && image2.hasName()) {
-      builder.append(" (").append(image1.name).append("-").append(image2.name).append(")");
+      builder.append(" (").append(image1.getName()).append("-").append(image2.getName()).append(")");
     }
     
     return builder.append(" { count=")

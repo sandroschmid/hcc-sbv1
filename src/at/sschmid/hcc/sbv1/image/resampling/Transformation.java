@@ -12,7 +12,7 @@ public final class Transformation implements ImageGenerator {
   private Image image;
   
   public Transformation(final Image image) {
-    this(image, image.hasName() ? image.name + " (transformed)" : "Transformed");
+    this(image, image.hasName() ? image.getName() + " (transformed)" : "Transformed");
   }
   
   public Transformation(final Image image, final String name) {
@@ -139,8 +139,8 @@ public final class Transformation implements ImageGenerator {
     
     final int newWidth = (int) (image.width * scale.factor + 0.5); // arithm round
     final int newHeight = (int) (image.height * scale.factor + 0.5);
-    
-    final Image result = new Image(image.name, newWidth, newHeight);
+  
+    final Image result = new Image(image.getName(), newWidth, newHeight);
     final Interpolation interpolation = image.interpolation();
     
     // forward mapping

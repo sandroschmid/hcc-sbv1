@@ -12,12 +12,29 @@ public final class Utility {
   }
   
   public static ExecutorService threadPool() {
-    return Executors.newFixedThreadPool(Utility.threadCount());
+    return threadPool(Utility.threadCount());
   }
   
-  public static void wait(final ExecutorService executor) {
-    executor.shutdown();
-    while (!executor.isTerminated()) {
+  public static ExecutorService threadPool(final int threads) {
+    return Executors.newFixedThreadPool(threads);
+  }
+  
+  public static <T extends Runnable> void executeAndWait(final Iterable<T> workers) {
+    executeAndWait(threadPool(), workers);
+  }
+  
+  public static <T extends Runnable> void executeAndWait(final ExecutorService threadPool,
+                                                         final Iterable<T> workers) {
+    for (final Runnable worker : workers) {
+      threadPool.execute(worker);
+    }
+    
+    wait(threadPool);
+  }
+  
+  public static void wait(final ExecutorService threadPool) {
+    threadPool.shutdown();
+    while (!threadPool.isTerminated()) {
       // wait
     }
   }

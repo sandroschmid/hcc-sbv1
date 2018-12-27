@@ -3,8 +3,9 @@ package at.sschmid.hcc.sbv1.image.registration;
 import at.sschmid.hcc.sbv1.image.Image;
 import at.sschmid.hcc.sbv1.image.resampling.Transformations;
 import at.sschmid.hcc.sbv1.utility.Utility;
-import ij.IJ;
 
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.concurrent.ExecutorService;
 
 public final class Registration {
@@ -45,8 +46,6 @@ public final class Registration {
   }
   
   public Transformations register(final Image image, final Image transformedImage) {
-    final long start = System.currentTimeMillis();
-    
     // fully automated registration:
     double stepWidthTranslation = this.stepWidthTranslation;
     double stepWidthRotation = this.stepWidthRotation;
@@ -68,49 +67,50 @@ public final class Registration {
     double currMidRot = 0;
     
     for (int run = 0; run < optimizationRuns; run++) {
+      final ExecutorService threadPool = Utility.threadPool();
+      final Deque<ErrorWorker> errorWorkers = new LinkedList<>();
+      final ErrorWorker.Builder errorWorkerBuilder = ErrorWorker.create().withImage(image)
+          .withTransformedImage(transformedImage)
+          .withErrorMetric(errorMetric);
+      
       for (int xIdx = -searchRadius; xIdx < searchRadius; xIdx++) {
         for (int yIdx = -searchRadius; yIdx < searchRadius; yIdx++) {
           for (int rotIdx = -searchRadius; rotIdx < searchRadius; rotIdx++) {
             final double currTx = currMidTx + xIdx * stepWidthTranslation;
             final double currTy = currMidTy + yIdx * stepWidthTranslation;
             final double currRot = currMidRot + rotIdx * stepWidthRotation;
-            
-            final ErrorWorker[] errorWorkers = new ErrorWorker[] {
-                new ErrorWorker(image,
-                    transformedImage,
-                    errorMetric,
-                    new Transformations().translate(currTx, currTy).rotate(currRot)),
-                new ErrorWorker(image,
-                    transformedImage,
-                    errorMetric,
-                    new Transformations().rotate(currRot).translate(currTx, currTy))
-            };
-            
-            final ExecutorService executor = Utility.threadPool();
-            for (final ErrorWorker errorWorker : errorWorkers) {
-              executor.execute(errorWorker);
-            }
-            
-            Utility.wait(executor);
-            
-            for (final ErrorWorker errorWorker : errorWorkers) {
-              final double error = errorWorker.getError();
-              if (error < minError) {
-                minError = error;
-                bestTx = currTx;
-                bestTy = currTy;
-                bestRot = currRot;
-                bestTransformations = errorWorker.getTransformations();
-//                IJ.log(String.format("Error: %s, bestTz=%s, bestTy=%s, bestRot=%s", minError, bestTx, bestTy,
-//                bestRot));
-              }
-            }
+  
+            errorWorkerBuilder.withTx(currTx).withTy(currTy).withRot(currRot);
+  
+            final ErrorWorker ew1 = errorWorkerBuilder
+                .withTransformations(new Transformations().translate(currTx, currTy).rotate(currRot))
+                .build();
+            threadPool.execute(ew1);
+            errorWorkers.addFirst(ew1);
+  
+            final ErrorWorker ew2 = errorWorkerBuilder
+                .withTransformations(new Transformations().rotate(currRot).translate(currTx, currTy))
+                .build();
+            threadPool.execute(ew2);
+            errorWorkers.addFirst(ew2);
           }
         }
       }
-      
-      // prepare next run
-      // decrease search area from global search to local search
+  
+      Utility.wait(threadPool);
+  
+      for (final ErrorWorker errorWorker : errorWorkers) {
+        final double error = errorWorker.getError();
+        if (error < minError) {
+          minError = error;
+          bestTx = errorWorker.getTx();
+          bestTy = errorWorker.getTy();
+          bestRot = errorWorker.getRot();
+          bestTransformations = errorWorker.getTransformations();
+        }
+      }
+  
+      // prepare next run - decrease search area from global search to local search
       stepWidthTranslation *= scalePerRun;
       stepWidthRotation *= scalePerRun;
       
@@ -118,11 +118,6 @@ public final class Registration {
       currMidTy = bestTy;
       currMidRot = bestRot;
     }
-    
-    IJ.log(String.format("Minimal error: %s, transformation: %s%n",
-        minError,
-        bestTransformations != null ? bestTransformations.toString() : "no transformation found"));
-    IJ.log(String.format("Register Duration %.3f%n", (System.currentTimeMillis() - start) / 1000d));
     
     return bestTransformations != null ? bestTransformations.reset() : null;
   }
