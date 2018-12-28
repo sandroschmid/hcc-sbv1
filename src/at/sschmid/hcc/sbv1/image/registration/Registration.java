@@ -87,12 +87,12 @@ public final class Registration {
                 .build();
             threadPool.execute(ew1);
             errorWorkers.addFirst(ew1);
-  
-            final ErrorWorker ew2 = errorWorkerBuilder
-                .withTransformations(new Transformations().rotate(currRot).translate(currTx, currTy))
-                .build();
-            threadPool.execute(ew2);
-            errorWorkers.addFirst(ew2);
+
+//            final ErrorWorker ew2 = errorWorkerBuilder
+//                .withTransformations(new Transformations().rotate(currRot).translate(currTx, currTy))
+//                .build();
+//            threadPool.execute(ew2);
+//            errorWorkers.addFirst(ew2);
           }
         }
       }

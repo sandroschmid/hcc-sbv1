@@ -25,7 +25,7 @@ public final class DistanceMapTest {
   
   @Test
   public void testManhattan() {
-    final DistanceMap distanceMap = image.distanceMap(DistanceMap.DistanceMetric.Manhattan);
+    final DistanceMap distanceMap = image.distanceMap(DistanceMetric.Manhattan);
     
     final double[][] expectedMap = {
         { 1, 0, 1, 0, 1 },
@@ -42,7 +42,7 @@ public final class DistanceMapTest {
   
   @Test
   public void testEuklid() {
-    final DistanceMap distanceMap = image.distanceMap(DistanceMap.DistanceMetric.Euklid);
+    final DistanceMap distanceMap = image.distanceMap(DistanceMetric.Euklid);
     
     final double[][] expectedMap = {
         { 1, 0, 1, 0, 1 },

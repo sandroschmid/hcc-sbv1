@@ -23,7 +23,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
   private static final double DEFAULT_TRANS_Y = -7.9999;
   private static final double DEFAULT_ROTATION = 11.5;
   private static final int DEFAULT_OPTIMIZATION_RUNS = 5;
-  private static final ErrorMetricType DEFAULT_METRIC = ErrorMetricType.SSE;
+  private static final ErrorMetricType DEFAULT_METRIC = ErrorMetricType.MI;
   
   @Override
   public void process(final Image image) {
@@ -79,11 +79,11 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
   }
   
   private void registration(final Image image1, final Image image2) {
-    final ErrorMetric errorMetric = ErrorMetric.create(input.errorMetricType);
+    final ErrorMetric errorMetric = ErrorMetric.create(input.errorMetricType, image1, image2);
     final double initialError = errorMetric.getError(image1, image2);
     IJ.log(String.format("Initial error = %.0f", initialError));
-    addResult(image1, String.format("%s - image 1", pluginName));
-    addResult(image2, String.format("%s - image 2 (e=%.0f)", pluginName, initialError));
+    image1.show(String.format("%s - image 1", pluginName));
+    image2.show(String.format("%s - image 2 (e=%.0f)", pluginName, initialError));
     
     final Registration registration = Registration.create()
         .errorMetric(errorMetric)
@@ -111,8 +111,10 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     final double minimalError = errorMetric.getError(image1, registeredImage);
     addResult(registeredImage, String.format("%s - registered image (e=%.0f)", pluginName, minimalError));
     addResult(image1.calculation(registeredImage).difference(), String.format("%s - difference", pluginName));
-    
-    IJ.log(String.format("Minimal error = %.0f (difference = %.0f)", minimalError, minimalError - initialError));
+  
+    final double diff = minimalError - initialError;
+    final double diffRelative = diff / initialError;
+    IJ.log(String.format("Minimal error = %.0f (difference = %.0f = %.2f%%)", minimalError, diff, diffRelative));
     IJ.log(String.format("Best transformations: %s", bestTransformations));
   }
   

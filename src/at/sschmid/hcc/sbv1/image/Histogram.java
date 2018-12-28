@@ -35,9 +35,9 @@ public final class Histogram {
   public double[] getProbabilities() {
     if (probabilities == null) {
       probabilities = new double[data.length];
-      final double total = (double) image.size;
+      final double totalPixels = (double) image.size;
       for (int i = 0; i < probabilities.length; i++) {
-        probabilities[i] = data[i] / total;
+        probabilities[i] = data[i] / totalPixels;
       }
     }
     

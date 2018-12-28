@@ -27,8 +27,18 @@ public final class DistanceMap {
   }
   
   public Image asImage() {
-    return new Image(calculate(), image.width, image.height)
-        .withName(String.format("Distance map (%s) for '%s'", distanceMetric, image.getName()));
+    calculate();
+  
+    final String name = String.format("Distance map (%s) for '%s'", distanceMetric, image.getName());
+    final Image result = new Image(name, image.width, image.height);
+    for (int x = 0; x < image.width; x++) {
+      for (int y = 0; y < image.height; y++) {
+        final double color = distanceMap[x][y];
+        result.data[x][y] = color > image.maxColor ? image.maxColor : (int) (color + 0.5d);
+      }
+    }
+  
+    return result;
   }
   
   private void initContour() {
@@ -40,85 +50,74 @@ public final class DistanceMap {
   }
   
   private void topLeftToBottomRight() {
-    final double[] distances = new double[4];
-    byte i;
     for (int x = 0; x < image.width; x++) {
       for (int y = 1; y < image.height; y++) {
-        if (Double.isFinite(distanceMap[x][y])) {
+        if (distanceMap[x][y] == 0) {
           continue;
         }
-        
-        i = 0x0;
-        distances[i++] = distanceMap[x][y - 1] + distanceMetric.value[1][0]; // top
+  
+        double distance = distanceMap[x][y - 1] + distanceMetric.value[1][0]; // top
+        double minDistance = distance;
         
         if (x > 0) {
-          distances[i++] = distanceMap[x - 1][y] + distanceMetric.value[0][1]; // left
-          distances[i++] = distanceMap[x - 1][y - 1] + distanceMetric.value[0][0]; // top left
+          distance = distanceMap[x - 1][y] + distanceMetric.value[0][1]; // left
+          if (distance < minDistance) {
+            minDistance = distance;
+          }
+  
+          distance = distanceMap[x - 1][y - 1] + distanceMetric.value[0][0]; // top left
+          if (distance < minDistance) {
+            minDistance = distance;
+          }
         }
         
         if (x < image.width - 1) {
-          distances[i++] = distanceMap[x + 1][y - 1] + distanceMetric.value[2][0]; // top right
+          distance = distanceMap[x + 1][y - 1] + distanceMetric.value[2][0]; // top right
+          if (distance < minDistance) {
+            minDistance = distance;
+          }
         }
-        
-        distanceMap[x][y] = min(distances, i);
+  
+        distanceMap[x][y] = minDistance;
       }
     }
   }
   
   private void bottomRightToTopLeft() {
-    final double[] distances = new double[4];
-    byte i;
     for (int x = image.width - 1; x >= 0; x--) {
       for (int y = image.height - 2; y >= 0; y--) {
-        if (Double.isFinite(distanceMap[x][y])) {
+        double prevDistance = distanceMap[x][y];
+        if (prevDistance == 0) {
           continue;
         }
-        
-        i = 0x0;
-        distances[i++] = distanceMap[x][y + 1] + distanceMetric.value[1][2]; // bottom
-        
-        if (x < image.width - 2) {
-          distances[i++] = distanceMap[x + 1][y] + distanceMetric.value[2][1]; // right
-          distances[i++] = distanceMap[x + 1][y + 1] + distanceMetric.value[2][2]; // bottom right
+  
+        double minDistance = prevDistance;
+        double distance = distanceMap[x][y + 1] + distanceMetric.value[1][2]; // bottom
+        if (distance < minDistance) {
+          minDistance = distance;
         }
         
-        if (x >= 1) {
-          distances[i++] = distanceMap[x - 1][y + 1] + distanceMetric.value[0][2]; // bottom left
+        if (x < image.width - 1) {
+          distance = distanceMap[x + 1][y] + distanceMetric.value[2][1]; // right
+          if (distance < minDistance) {
+            minDistance = distance;
+          }
+  
+          distance = distanceMap[x + 1][y + 1] + distanceMetric.value[2][2]; // bottom right
+          if (distance < minDistance) {
+            minDistance = distance;
+          }
         }
-        
-        distanceMap[x][y] = min(distances, i);
-      }
-    }
-  }
   
-  private double min(final double[] distances, final byte n) {
-    double minDistance = Double.POSITIVE_INFINITY;
-    for (byte i = 0x0; i < n; i++) {
-      final double distance = distances[i];
-      if (distance < minDistance) {
-        minDistance = distance;
-      }
-    }
-    
-    return minDistance;
-  }
+        if (x > 0) {
+          distance = distanceMap[x - 1][y + 1] + distanceMetric.value[0][2]; // bottom left
+          if (distance < minDistance) {
+            minDistance = distance;
+          }
+        }
   
-  public enum DistanceMetric {
-    Manhattan(new double[][] {
-        { 2, 1, 2 },
-        { 1, 0, 1 },
-        { 2, 1, 2 }
-    }),
-    Euklid(new double[][] {
-        { 1.41, 1, 1.41 },
-        { 1, 0, 1 },
-        { 1.41, 1, 1.41 }
-    });
-    
-    private final double[][] value;
-    
-    DistanceMetric(final double[][] value) {
-      this.value = value;
+        distanceMap[x][y] = minDistance;
+      }
     }
   }
   

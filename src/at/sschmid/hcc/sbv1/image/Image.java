@@ -2,6 +2,7 @@ package at.sschmid.hcc.sbv1.image;
 
 import at.sschmid.hcc.sbv1.image.imagej.ImageJUtility;
 import at.sschmid.hcc.sbv1.image.registration.DistanceMap;
+import at.sschmid.hcc.sbv1.image.registration.DistanceMetric;
 import at.sschmid.hcc.sbv1.image.resampling.Interpolation;
 import at.sschmid.hcc.sbv1.image.resampling.Transformation;
 import at.sschmid.hcc.sbv1.image.segmentation.BinaryThreshold;
@@ -103,7 +104,7 @@ public final class Image {
     return new Image(String.format("%s - Sobel Edges", getName()), resultData, width, height);
   }
   
-  public DistanceMap distanceMap(final DistanceMap.DistanceMetric distanceMetric) {
+  public DistanceMap distanceMap(final DistanceMetric distanceMetric) {
     return new DistanceMap(this, distanceMetric);
   }
   

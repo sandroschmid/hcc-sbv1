@@ -8,7 +8,7 @@ public final class Utility {
   private static final double NATURAL_LOG_BASE_TWO = Math.log(2);
   
   public static int threadCount() {
-    return Runtime.getRuntime().availableProcessors() * 2;
+    return Runtime.getRuntime().availableProcessors();
   }
   
   public static ExecutorService threadPool() {

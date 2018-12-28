@@ -4,7 +4,7 @@ import at.sschmid.hcc.sbv1.image.Image;
 import at.sschmid.hcc.sbv1.image.resampling.Interpolation;
 import at.sschmid.hcc.sbv1.image.resampling.Transformations;
 
-class ErrorWorker implements Runnable {
+final class ErrorWorker implements Runnable {
   
   static Builder create() {
     return new Builder();
@@ -65,7 +65,7 @@ class ErrorWorker implements Runnable {
     error = errorMetric.getError(image, testImage);
   }
   
-  static class Builder {
+  final static class Builder {
     
     private Image image;
     private Image transformedImage;

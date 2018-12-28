@@ -1,8 +1,8 @@
 package at.sschmid.hcc.sbv1.image.registration;
 
 public enum ErrorMetricType {
-  SSE("SSE"),
-  MI("MI");
+  SSE("Sum of Squared Error"),
+  MI("Mutual Information");
   
   public final String name;
   

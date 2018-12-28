@@ -1,6 +1,6 @@
 import at.sschmid.hcc.sbv1.image.Image;
 import at.sschmid.hcc.sbv1.image.imagej.AbstractUserInputPlugIn;
-import at.sschmid.hcc.sbv1.image.registration.DistanceMap;
+import at.sschmid.hcc.sbv1.image.registration.DistanceMetric;
 import at.sschmid.hcc.sbv1.image.segmentation.BinaryThreshold;
 import ij.gui.GenericDialog;
 
@@ -8,8 +8,8 @@ import java.util.Arrays;
 
 public final class DistanceMap_ extends AbstractUserInputPlugIn<DistanceMap_.Input> {
   
-  private static final int T_MIN = 124;
-  private static final int T_MAX = 230;
+  private static final int T_MIN = 100;
+  private static final int T_MAX = 255;
   private static final int BG = 0;
   private static final int FG = 255;
   
@@ -17,23 +17,24 @@ public final class DistanceMap_ extends AbstractUserInputPlugIn<DistanceMap_.Inp
   public void process(final Image image) {
     final Image binary = image.binary(input.binaryThreshold);
     final Image edges = binary.edges();
-    final DistanceMap distanceMap = edges.distanceMap(input.distanceMetric);
-    final Image distanceMapResult = distanceMap.asImage();
-    
+    final Image distanceMapResult = binary.distanceMap(input.distanceMetric).asImage();
+    final Image distanceMapEdgesResult = edges.distanceMap(input.distanceMetric).asImage();
+  
     addResult(binary, String.format("%s - binary", pluginName));
-    addResult(edges, String.format("%s - edges", pluginName));
     addResult(distanceMapResult, String.format("%s - distance map (%s)", pluginName, input.distanceMetric));
+    addResult(edges, String.format("%s - edges", pluginName));
+    addResult(distanceMapEdgesResult, String.format("%s - distance map (edges, %s)", pluginName, input.distanceMetric));
   }
   
   @Override
   protected void setupDialog(final GenericDialog dialog) {
-    dialog.addNumericField("Threshold Min", T_MIN, 0);
-    dialog.addNumericField("Threshold Max", T_MAX, 0);
-    dialog.addNumericField("Background", BG, 0);
-    dialog.addNumericField("Foreground", FG, 0);
+    dialog.addSlider("Threshold Min", 0, 255, T_MIN);
+    dialog.addSlider("Threshold Max", 0, 255, T_MAX);
+    dialog.addSlider("Background", 0, 255, BG);
+    dialog.addSlider("Foreground", 0, 255, FG);
     dialog.addChoice("Distance Metric",
-        Arrays.stream(DistanceMap.DistanceMetric.values()).map(Enum::toString).toArray(String[]::new),
-        DistanceMap.DistanceMetric.Manhattan.toString());
+        Arrays.stream(DistanceMetric.values()).map(Enum::toString).toArray(String[]::new),
+        DistanceMetric.Manhattan.toString());
   }
   
   @Override
@@ -44,27 +45,23 @@ public final class DistanceMap_ extends AbstractUserInputPlugIn<DistanceMap_.Inp
         tMax <= tMin ? null : tMax,
         (int) dialog.getNextNumber(),
         (int) dialog.getNextNumber());
-    
-    return new Input(binaryThreshold, DistanceMap.DistanceMetric.values()[dialog.getNextChoiceIndex()]);
+  
+    return new Input(binaryThreshold, DistanceMetric.values()[dialog.getNextChoiceIndex()]);
   }
   
   final class Input {
     
     private final BinaryThreshold binaryThreshold;
-    private final DistanceMap.DistanceMetric distanceMetric;
-    
-    Input(final BinaryThreshold binaryThreshold,
-          final DistanceMap.DistanceMetric distanceMetric) {
+    private final DistanceMetric distanceMetric;
+  
+    Input(final BinaryThreshold binaryThreshold, final DistanceMetric distanceMetric) {
       this.binaryThreshold = binaryThreshold;
       this.distanceMetric = distanceMetric;
     }
     
     @Override
     public String toString() {
-      return "Input {" +
-          "\n  binaryThreshold=" + binaryThreshold +
-          ",\n  distanceMetric=" + distanceMetric +
-          "\n}";
+      return String.format("Input {\n  binaryThreshold=%s,\n  distanceMetric=%s\n}", binaryThreshold, distanceMetric);
     }
     
   }
