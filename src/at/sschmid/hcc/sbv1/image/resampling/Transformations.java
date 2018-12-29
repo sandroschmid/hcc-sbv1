@@ -76,7 +76,7 @@ public final class Transformations {
     
     @Override
     public String toString() {
-      return String.format("Transform [%.3f, %.3f]", x, y);
+      return String.format("Transform [%.1f, %.1f]", x, y);
     }
     
   }
@@ -91,7 +91,7 @@ public final class Transformations {
     
     @Override
     public String toString() {
-      return String.format("Rotation %.3f°", Math.toDegrees(radians));
+      return String.format("Rotation %.1f°", Math.toDegrees(radians));
     }
     
   }

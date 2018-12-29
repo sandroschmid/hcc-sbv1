@@ -22,8 +22,9 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
   private static final double DEFAULT_TRANS_X = 3.1416;
   private static final double DEFAULT_TRANS_Y = -7.9999;
   private static final double DEFAULT_ROTATION = 11.5;
+  private static final boolean DEFAULT_ROTATE_FIRST = false;
   private static final int DEFAULT_OPTIMIZATION_RUNS = 5;
-  private static final ErrorMetricType DEFAULT_METRIC = ErrorMetricType.MI;
+  private static final ErrorMetricType DEFAULT_METRIC = ErrorMetricType.CM;
   
   @Override
   public void process(final Image image) {
@@ -52,6 +53,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     dialog.addNumericField("Translate X", DEFAULT_TRANS_X, 3);
     dialog.addNumericField("Translate Y", DEFAULT_TRANS_Y, 3);
     dialog.addNumericField("Rotation (deg)", DEFAULT_ROTATION, 3);
+    dialog.addCheckbox("Rotate first", DEFAULT_ROTATE_FIRST);
   
     dialog.addMessage("Registration:");
     dialog.addChoice("Error metric",
@@ -70,6 +72,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
         dialog.getNextNumber(),
         dialog.getNextNumber(),
         dialog.getNextNumber(),
+        dialog.getNextBoolean(),
         ErrorMetricType.values()[dialog.getNextChoiceIndex()],
         (int) dialog.getNextNumber(),
         dialog.getNextNumber(),
@@ -113,7 +116,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     addResult(image1.calculation(registeredImage).difference(), String.format("%s - difference", pluginName));
   
     final double diff = minimalError - initialError;
-    final double diffRelative = diff / initialError;
+    final double diffRelative = diff / initialError * 100;
     IJ.log(String.format("Minimal error = %.0f (difference = %.0f = %.2f%%)", minimalError, diff, diffRelative));
     IJ.log(String.format("Best transformations: %s", bestTransformations));
   }
@@ -124,6 +127,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     private final double translationX;
     private final double translationY;
     private final double rotation;
+    private final boolean rotateFirst;
     
     private final ErrorMetricType errorMetricType;
     private final int searchRadius;
@@ -136,6 +140,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
           final double translationX,
           final double translationY,
           final double rotation,
+          final boolean rotateFirst,
           final ErrorMetricType errorMetricType,
           final int searchRadius,
           final double stepWidthTranslation,
@@ -146,6 +151,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
       this.translationX = translationX;
       this.translationY = translationY;
       this.rotation = rotation;
+      this.rotateFirst = rotateFirst;
       this.errorMetricType = errorMetricType;
       this.searchRadius = searchRadius;
       this.stepWidthTranslation = stepWidthTranslation;
@@ -166,7 +172,9 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
             .append(",\n   translationY=")
             .append(translationY)
             .append(",\n   rotation=")
-            .append(rotation);
+            .append(rotation)
+            .append(",\n   rotate first=")
+            .append(rotateFirst);
       }
       
       return result.append(",\n  Registration:\n   errorMetricType=")
@@ -186,7 +194,9 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     }
     
     private Transformations getTransformations() {
-      return new Transformations().translate(translationX, translationY).rotate(rotation);
+      return rotateFirst
+          ? new Transformations().rotate(rotation).translate(translationX, translationY)
+          : new Transformations().translate(translationX, translationY).rotate(rotation);
     }
     
   }

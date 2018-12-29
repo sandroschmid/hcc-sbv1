@@ -22,7 +22,6 @@ public final class DistanceMap {
       initContour();
       topLeftToBottomRight();
       bottomRightToTopLeft();
-      cleanup();
     }
     
     return distanceMap;
@@ -58,7 +57,7 @@ public final class DistanceMap {
         if (minDistance == 0) {
           continue;
         }
-    
+  
         double nextDistance;
         if (x > 0) {
           nextDistance = distanceMap[x - 1][y] + distanceMetric.direct; // left
@@ -66,20 +65,20 @@ public final class DistanceMap {
             minDistance = nextDistance;
           }
         }
-    
+  
         if (y > 0) {
           nextDistance = distanceMap[x][y - 1] + distanceMetric.direct; // top
           if (nextDistance < minDistance) {
             minDistance = nextDistance;
           }
-      
+    
           if (x > 0) {
             nextDistance = distanceMap[x - 1][y - 1] + distanceMetric.diagonal; // top left
             if (nextDistance < minDistance) {
               minDistance = nextDistance;
             }
           }
-      
+    
           if (x < image.width - 1) {
             nextDistance = distanceMap[x + 1][y - 1] + distanceMetric.diagonal; // top right
             if (nextDistance < minDistance) {
@@ -87,7 +86,7 @@ public final class DistanceMap {
             }
           }
         }
-    
+  
         distanceMap[x][y] = minDistance;
       }
     }
@@ -100,7 +99,7 @@ public final class DistanceMap {
         if (minDistance == 0) {
           continue;
         }
-    
+  
         double nextDistance;
         if (x < image.width - 1) {
           nextDistance = distanceMap[x + 1][y] + distanceMetric.direct; // right
@@ -108,20 +107,20 @@ public final class DistanceMap {
             minDistance = nextDistance;
           }
         }
-    
+  
         if (y < image.height - 1) {
           nextDistance = distanceMap[x][y + 1] + distanceMetric.direct; // bottom
           if (nextDistance < minDistance) {
             minDistance = nextDistance;
           }
-      
+    
           if (x < image.width - 1) {
             nextDistance = distanceMap[x + 1][y + 1] + distanceMetric.diagonal; // bottom right
             if (nextDistance < minDistance) {
               minDistance = nextDistance;
             }
           }
-      
+    
           if (x > 0) {
             nextDistance = distanceMap[x - 1][y + 1] + distanceMetric.diagonal; // bottom left
             if (nextDistance < minDistance) {
@@ -133,31 +132,6 @@ public final class DistanceMap {
         distanceMap[x][y] = minDistance;
       }
     }
-  }
-  
-  private void cleanup() {
-    final double maxDistance = getRealMaxDistance();
-    for (int x = 0; x < image.width; x++) {
-      for (int y = 0; y < image.height; y++) {
-        if (distanceMap[x][y] > maxDistance) {
-          distanceMap[x][y] = maxDistance;
-        }
-      }
-    }
-  }
-  
-  private double getRealMaxDistance() {
-    double maxDistance = Double.NEGATIVE_INFINITY;
-    for (int x = 0; x < image.width; x++) {
-      for (int y = 0; y < image.height; y++) {
-        final double distance = distanceMap[x][y];
-        if (distance > maxDistance && Double.isFinite(distance)) {
-          maxDistance = distance;
-        }
-      }
-    }
-    
-    return maxDistance;
   }
   
 }

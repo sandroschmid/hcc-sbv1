@@ -87,12 +87,12 @@ public final class Registration {
                 .build();
             threadPool.execute(ew1);
             errorWorkers.addFirst(ew1);
-
-//            final ErrorWorker ew2 = errorWorkerBuilder
-//                .withTransformations(new Transformations().rotate(currRot).translate(currTx, currTy))
-//                .build();
-//            threadPool.execute(ew2);
-//            errorWorkers.addFirst(ew2);
+  
+            final ErrorWorker ew2 = errorWorkerBuilder
+                .withTransformations(new Transformations().rotate(currRot).translate(currTx, currTy))
+                .build();
+            threadPool.execute(ew2);
+            errorWorkers.addFirst(ew2);
           }
         }
       }
@@ -108,6 +108,10 @@ public final class Registration {
           bestRot = errorWorker.getRot();
           bestTransformations = errorWorker.getTransformations();
         }
+      }
+  
+      if (bestTransformations == null) {
+        return null; // if first run does not find a transformation, further runs won't find one either
       }
   
       // prepare next run - decrease search area from global search to local search

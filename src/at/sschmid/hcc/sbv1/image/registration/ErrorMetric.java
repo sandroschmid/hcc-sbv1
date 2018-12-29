@@ -6,9 +6,21 @@ import at.sschmid.hcc.sbv1.image.Image;
 public interface ErrorMetric {
   
   static ErrorMetric create(final ErrorMetricType type, final Image image1, final Image image2) {
-    final ErrorMetric impl = ErrorMetricType.SSE.equals(type)
-        ? new SquaredSumOfErrorMetric()
-        : new MutualInformationMetric();
+    ErrorMetric impl;
+    switch (type) {
+      case SSE:
+        impl = new SquaredSumOfErrorMetric();
+        break;
+      case MI:
+        impl = new MutualInformationMetric();
+        break;
+      case CM:
+        impl = new ChamferMatchingMetric();
+        break;
+      default:
+        throw new IllegalArgumentException("Unknown error metric type " + type);
+    }
+    
     impl.init(image1, image2);
     return impl;
   }
