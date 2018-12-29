@@ -1,4 +1,5 @@
 import at.sschmid.hcc.sbv1.image.Image;
+import at.sschmid.hcc.sbv1.image.ImageTransferFunctions;
 import at.sschmid.hcc.sbv1.image.imagej.AbstractUserInputPlugIn;
 import at.sschmid.hcc.sbv1.image.registration.DistanceMetric;
 import at.sschmid.hcc.sbv1.image.segmentation.BinaryThreshold;
@@ -16,14 +17,18 @@ public final class DistanceMap_ extends AbstractUserInputPlugIn<DistanceMap_.Inp
   @Override
   public void process(final Image image) {
     final Image binary = image.binary(input.binaryThreshold);
-    final Image edges = binary.edges();
-    final Image distanceMapResult = binary.distanceMap(input.distanceMetric).asImage();
+    final Image edges = binary.edges().binary(new BinaryThreshold(1, 0, image.maxColor));
+//    final Image distanceMapResult = binary.distanceMap(input.distanceMetric).asImage();
     final Image distanceMapEdgesResult = edges.distanceMap(input.distanceMetric).asImage();
-  
-    addResult(binary, String.format("%s - binary", pluginName));
-    addResult(distanceMapResult, String.format("%s - distance map (%s)", pluginName, input.distanceMetric));
+
+//    addResult(binary, String.format("%s - binary", pluginName));
+//    addResult(distanceMapResult, String.format("%s - distance map (%s)", pluginName, input.distanceMetric));
     addResult(edges, String.format("%s - edges", pluginName));
-    addResult(distanceMapEdgesResult, String.format("%s - distance map (edges, %s)", pluginName, input.distanceMetric));
+    final String name = String.format("%s - distance map (edges, %s)", pluginName, input.distanceMetric);
+    addResult(distanceMapEdgesResult, name);
+  
+    final int[] histogramEqualization = ImageTransferFunctions.GetHistogramEqualizationTF2(distanceMapEdgesResult);
+    addResult(distanceMapEdgesResult.transformation().transfer(histogramEqualization).getResult(), name);
   }
   
   @Override

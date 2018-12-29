@@ -17,10 +17,12 @@ public final class DistanceMap {
   public double[][] calculate() {
     if (distanceMap == null) {
       distanceMap = new double[image.width][image.height];
-      
+  
+      // see also https://github.com/biometrics/imagingbook/blob/master/src/Chamfer_Matching.java
       initContour();
       topLeftToBottomRight();
       bottomRightToTopLeft();
+      cleanup();
     }
     
     return distanceMap;
@@ -51,30 +53,80 @@ public final class DistanceMap {
   
   private void topLeftToBottomRight() {
     for (int x = 0; x < image.width; x++) {
-      for (int y = 1; y < image.height; y++) {
-        if (distanceMap[x][y] == 0) {
+      for (int y = 0; y < image.height; y++) {
+        double minDistance = distanceMap[x][y];
+        if (minDistance == 0) {
           continue;
         }
-  
-        double distance = distanceMap[x][y - 1] + distanceMetric.value[1][0]; // top
-        double minDistance = distance;
-        
+    
+        double nextDistance;
         if (x > 0) {
-          distance = distanceMap[x - 1][y] + distanceMetric.value[0][1]; // left
-          if (distance < minDistance) {
-            minDistance = distance;
-          }
-  
-          distance = distanceMap[x - 1][y - 1] + distanceMetric.value[0][0]; // top left
-          if (distance < minDistance) {
-            minDistance = distance;
+          nextDistance = distanceMap[x - 1][y] + distanceMetric.direct; // left
+          if (nextDistance < minDistance) {
+            minDistance = nextDistance;
           }
         }
-        
+    
+        if (y > 0) {
+          nextDistance = distanceMap[x][y - 1] + distanceMetric.direct; // top
+          if (nextDistance < minDistance) {
+            minDistance = nextDistance;
+          }
+      
+          if (x > 0) {
+            nextDistance = distanceMap[x - 1][y - 1] + distanceMetric.diagonal; // top left
+            if (nextDistance < minDistance) {
+              minDistance = nextDistance;
+            }
+          }
+      
+          if (x < image.width - 1) {
+            nextDistance = distanceMap[x + 1][y - 1] + distanceMetric.diagonal; // top right
+            if (nextDistance < minDistance) {
+              minDistance = nextDistance;
+            }
+          }
+        }
+    
+        distanceMap[x][y] = minDistance;
+      }
+    }
+  }
+  
+  private void bottomRightToTopLeft() {
+    for (int x = image.width - 1; x >= 0; x--) {
+      for (int y = image.height - 1; y >= 0; y--) {
+        double minDistance = distanceMap[x][y];
+        if (minDistance == 0) {
+          continue;
+        }
+    
+        double nextDistance;
         if (x < image.width - 1) {
-          distance = distanceMap[x + 1][y - 1] + distanceMetric.value[2][0]; // top right
-          if (distance < minDistance) {
-            minDistance = distance;
+          nextDistance = distanceMap[x + 1][y] + distanceMetric.direct; // right
+          if (nextDistance < minDistance) {
+            minDistance = nextDistance;
+          }
+        }
+    
+        if (y < image.height - 1) {
+          nextDistance = distanceMap[x][y + 1] + distanceMetric.direct; // bottom
+          if (nextDistance < minDistance) {
+            minDistance = nextDistance;
+          }
+      
+          if (x < image.width - 1) {
+            nextDistance = distanceMap[x + 1][y + 1] + distanceMetric.diagonal; // bottom right
+            if (nextDistance < minDistance) {
+              minDistance = nextDistance;
+            }
+          }
+      
+          if (x > 0) {
+            nextDistance = distanceMap[x - 1][y + 1] + distanceMetric.diagonal; // bottom left
+            if (nextDistance < minDistance) {
+              minDistance = nextDistance;
+            }
           }
         }
   
@@ -83,42 +135,29 @@ public final class DistanceMap {
     }
   }
   
-  private void bottomRightToTopLeft() {
-    for (int x = image.width - 1; x >= 0; x--) {
-      for (int y = image.height - 2; y >= 0; y--) {
-        double prevDistance = distanceMap[x][y];
-        if (prevDistance == 0) {
-          continue;
+  private void cleanup() {
+    final double maxDistance = getRealMaxDistance();
+    for (int x = 0; x < image.width; x++) {
+      for (int y = 0; y < image.height; y++) {
+        if (distanceMap[x][y] > maxDistance) {
+          distanceMap[x][y] = maxDistance;
         }
-  
-        double minDistance = prevDistance;
-        double distance = distanceMap[x][y + 1] + distanceMetric.value[1][2]; // bottom
-        if (distance < minDistance) {
-          minDistance = distance;
-        }
-        
-        if (x < image.width - 1) {
-          distance = distanceMap[x + 1][y] + distanceMetric.value[2][1]; // right
-          if (distance < minDistance) {
-            minDistance = distance;
-          }
-  
-          distance = distanceMap[x + 1][y + 1] + distanceMetric.value[2][2]; // bottom right
-          if (distance < minDistance) {
-            minDistance = distance;
-          }
-        }
-  
-        if (x > 0) {
-          distance = distanceMap[x - 1][y + 1] + distanceMetric.value[0][2]; // bottom left
-          if (distance < minDistance) {
-            minDistance = distance;
-          }
-        }
-  
-        distanceMap[x][y] = minDistance;
       }
     }
+  }
+  
+  private double getRealMaxDistance() {
+    double maxDistance = Double.NEGATIVE_INFINITY;
+    for (int x = 0; x < image.width; x++) {
+      for (int y = 0; y < image.height; y++) {
+        final double distance = distanceMap[x][y];
+        if (distance > maxDistance && Double.isFinite(distance)) {
+          maxDistance = distance;
+        }
+      }
+    }
+    
+    return maxDistance;
   }
   
 }

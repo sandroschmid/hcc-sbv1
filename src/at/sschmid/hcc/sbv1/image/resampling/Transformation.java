@@ -19,14 +19,16 @@ public final class Transformation implements ImageGenerator {
     this.image = new Image(image).withName(name);
   }
   
-  public Image invert() {
+  public Transformation invert() {
     final Image result = new Image(image, false);
     for (int x = 0; x < result.width; x++) {
       for (int y = 0; y < result.height; y++) {
         result.data[x][y] = image.maxColor - image.data[x][y];
       }
     }
-    return result;
+    
+    image = result;
+    return this;
   }
   
   public Transformation transfer(final int[] transferFunction) {
@@ -50,11 +52,11 @@ public final class Transformation implements ImageGenerator {
     while (transformations.hasNext()) {
       final Transformations.TransformationItem item = transformations.next();
       if (item instanceof Transformations.Translation) {
-        translate((Transformations.Translation) item, mode);
+        image = translate((Transformations.Translation) item, mode);
       } else if (item instanceof Transformations.Rotation) {
-        rotate((Transformations.Rotation) item, mode);
+        image = rotate((Transformations.Rotation) item, mode);
       } else {
-        scale((Transformations.Scale) item, mode);
+        image = scale((Transformations.Scale) item, mode);
       }
     }
     
@@ -66,8 +68,8 @@ public final class Transformation implements ImageGenerator {
     return image;
   }
   
-  private void translate(final Transformations.Translation translation,
-                         final Interpolation.Mode mode) {
+  private Image translate(final Transformations.Translation translation,
+                          final Interpolation.Mode mode) {
     final Image result = new Image(image, false);
     final Interpolation interpolation = image.interpolation();
     
@@ -97,10 +99,10 @@ public final class Transformation implements ImageGenerator {
       }
     }
     
-    image = result;
+    return result;
   }
   
-  private void rotate(final Transformations.Rotation rotation, final Interpolation.Mode mode) {
+  private Image rotate(final Transformations.Rotation rotation, final Interpolation.Mode mode) {
     final Image result = new Image(image, false);
     final Interpolation interpolation = image.interpolation();
     final double cosTheta = Math.cos(rotation.radians);
@@ -128,10 +130,10 @@ public final class Transformation implements ImageGenerator {
       }
     }
     
-    image = result;
+    return result;
   }
   
-  private void scale(final Transformations.Scale scale, final Interpolation.Mode mode) {
+  private Image scale(final Transformations.Scale scale, final Interpolation.Mode mode) {
     if (scale.factor < 0.01d || scale.factor > 10d) {
       throw new IllegalArgumentException(String.format("%f is not a valid scale. Scale must be in [0.01;10].",
           scale.factor));
@@ -139,7 +141,7 @@ public final class Transformation implements ImageGenerator {
     
     final int newWidth = (int) (image.width * scale.factor + 0.5); // arithm round
     final int newHeight = (int) (image.height * scale.factor + 0.5);
-  
+    
     final Image result = new Image(image.getName(), newWidth, newHeight);
     final Interpolation interpolation = image.interpolation();
     
@@ -181,7 +183,7 @@ public final class Transformation implements ImageGenerator {
       }
     }
     
-    image = result;
+    return result;
   }
   
 }
