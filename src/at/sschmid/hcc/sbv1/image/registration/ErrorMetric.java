@@ -29,6 +29,10 @@ public interface ErrorMetric {
     // nothing to do
   }
   
+  default boolean isBetter(final double error, final double bestError) {
+    return error < bestError;
+  }
+  
   double getError(final Image image1, final Image image2);
   
 }

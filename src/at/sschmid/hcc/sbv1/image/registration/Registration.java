@@ -58,7 +58,7 @@ public final class Registration {
     double bestTx = 0;
     double bestTy = 0;
     double bestRot = 0;
-    double minError = errorMetric.getError(image, transformedImage);
+    double bestError = errorMetric.getError(image, transformedImage);
     Transformations bestTransformations = null;
     
     // offsets for further runs
@@ -69,7 +69,8 @@ public final class Registration {
     for (int run = 0; run < optimizationRuns; run++) {
       final ExecutorService threadPool = Utility.threadPool();
       final Deque<ErrorWorker> errorWorkers = new LinkedList<>();
-      final ErrorWorker.Builder errorWorkerBuilder = ErrorWorker.create().withImage(image)
+      final ErrorWorker.Builder errorWorkerBuilder = ErrorWorker.create()
+          .withImage(image)
           .withTransformedImage(transformedImage)
           .withErrorMetric(errorMetric);
       
@@ -97,21 +98,17 @@ public final class Registration {
         }
       }
   
-      Utility.wait(threadPool);
+      Utility.join(threadPool);
   
       for (final ErrorWorker errorWorker : errorWorkers) {
         final double error = errorWorker.getError();
-        if (error < minError) {
-          minError = error;
+        if (errorMetric.isBetter(error, bestError)) {
+          bestError = error;
           bestTx = errorWorker.getTx();
           bestTy = errorWorker.getTy();
           bestRot = errorWorker.getRot();
           bestTransformations = errorWorker.getTransformations();
         }
-      }
-  
-      if (bestTransformations == null) {
-        return null; // if first run does not find a transformation, further runs won't find one either
       }
   
       // prepare next run - decrease search area from global search to local search

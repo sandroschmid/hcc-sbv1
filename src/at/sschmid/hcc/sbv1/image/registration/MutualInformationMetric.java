@@ -16,6 +16,11 @@ final class MutualInformationMetric implements ErrorMetric {
   }
   
   @Override
+  public boolean isBetter(final double error, final double bestError) {
+    return error > bestError;
+  }
+  
+  @Override
   public double getError(final Image image1, final Image image2) {
     return image2.entropy() + image1Entropy - image1.entropy2d(image2);
   }

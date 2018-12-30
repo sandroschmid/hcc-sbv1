@@ -19,23 +19,27 @@ public final class Utility {
     return Executors.newFixedThreadPool(threads);
   }
   
-  public static <T extends Runnable> void executeAndWait(final Iterable<T> workers) {
-    executeAndWait(threadPool(), workers);
+  public static <T extends Runnable> void executeAndJoin(final Iterable<T> workers) {
+    executeAndJoin(threadPool(), workers);
   }
   
-  public static <T extends Runnable> void executeAndWait(final ExecutorService threadPool,
+  public static <T extends Runnable> void executeAndJoin(final ExecutorService threadPool,
                                                          final Iterable<T> workers) {
     for (final Runnable worker : workers) {
       threadPool.execute(worker);
     }
     
-    wait(threadPool);
+    join(threadPool);
   }
   
-  public static void wait(final ExecutorService threadPool) {
+  public static void join(final ExecutorService threadPool) {
     threadPool.shutdown();
     while (!threadPool.isTerminated()) {
-      // wait
+      try {
+        Thread.sleep(100);
+      } catch (InterruptedException e) {
+        // ignore
+      }
     }
   }
   

@@ -110,14 +110,14 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     final Image registeredImage = image2.transformation()
         .transform(bestTransformations, Interpolation.Mode.BiLinear)
         .getResult();
-    
-    final double minimalError = errorMetric.getError(image1, registeredImage);
-    addResult(registeredImage, String.format("%s - registered image (e=%.0f)", pluginName, minimalError));
+  
+    final double bestError = errorMetric.getError(image1, registeredImage);
+    addResult(registeredImage, String.format("%s - registered image (e=%.0f)", pluginName, bestError));
     addResult(image1.calculation(registeredImage).difference(), String.format("%s - difference", pluginName));
   
-    final double diff = minimalError - initialError;
+    final double diff = bestError - initialError;
     final double diffRelative = diff / initialError * 100;
-    IJ.log(String.format("Minimal error = %.0f (difference = %.0f = %.2f%%)", minimalError, diff, diffRelative));
+    IJ.log(String.format("Best error = %.0f (difference = %.0f = %.2f%%)", bestError, diff, diffRelative));
     IJ.log(String.format("Best transformations: %s", bestTransformations));
   }
   
