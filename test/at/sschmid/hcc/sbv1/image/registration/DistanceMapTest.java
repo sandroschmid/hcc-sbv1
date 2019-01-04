@@ -43,14 +43,15 @@ public final class DistanceMapTest {
   @Test
   public void testEuklid() {
     final DistanceMap distanceMap = image.distanceMap(DistanceMetric.Euklid);
-    
+  
+    final double sqrt2 = Math.sqrt(2);
     final double[][] expectedMap = {
         { 1, 0, 1, 0, 1 },
         { 1, 0, 1, 0, 1 },
         { 1, 0, 0, 0, 1 },
-        { 1, 0, 1, 1, 1.41 },
-        { 1, 0, 1, 2, 2.41 },
-        { 1.41, 1, 1.41, 2.41, 3.41 },
+        { 1, 0, 1, 1, sqrt2 },
+        { 1, 0, 1, 2, 1 + sqrt2 },
+        { sqrt2, 1, sqrt2, 1 + sqrt2, 2 + sqrt2 },
     };
     
     final double[][] result = distanceMap.calculate();
