@@ -85,7 +85,7 @@ public final class RegionGrowing_ extends AbstractUserInputPlugIn<RegionGrowing_
     
     @Override
     public String toString() {
-      return String.format("Input {\n  nb=%s,\n  bt=%s\n}", nb, bt);
+      return String.format("Region Growing {\n  nb=%s,\n  bt=%s\n}", nb, bt);
     }
     
   }

@@ -163,7 +163,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     @Override
     public String toString() {
       final StringBuilder result = new StringBuilder()
-          .append("Input {\n  Transformation:\n   splitImage=")
+          .append("Register {\n  Transformation:\n   splitImage=")
           .append(splitImage);
       
       if (!splitImage) {

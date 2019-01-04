@@ -90,7 +90,17 @@ public final class Transform_ extends AbstractUserInputPlugIn<Transform_.Input> 
       
       return transformations;
     }
-    
+  
+    @Override
+    public String toString() {
+      return String.format("Transform {transX=%s, transY=%s, rotDeg=%s, scaleFactor=%s, order='%s'}",
+          transX,
+          transY,
+          rotDeg,
+          scaleFactor,
+          order);
+    }
+  
   }
   
 }

@@ -23,7 +23,19 @@ public abstract class AbstractUserInputPlugIn<T> extends AbstractPlugIn {
     }
     
     input = getInput(dialog);
-    IJ.log(input.toString());
+    if (input instanceof Boolean
+        || input instanceof Character
+        || input instanceof Byte
+        || input instanceof Short
+        || input instanceof Integer
+        || input instanceof Long
+        || input instanceof Float
+        || input instanceof Double
+        || input instanceof Void) {
+      IJ.log(String.format("Input for %s: %s", pluginName, input));
+    } else {
+      IJ.log(input.toString());
+    }
     
     super.run(imageProcessor);
   }

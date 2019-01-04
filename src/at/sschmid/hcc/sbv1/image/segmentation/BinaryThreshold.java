@@ -43,12 +43,12 @@ public final class BinaryThreshold {
   
   @Override
   public String toString() {
-    return "BinaryThreshold {" +
-        "\n  thresholdMin=" + thresholdMin +
-        ",\n  thresholdMax=" + thresholdMax +
-        ",\n  background=" + background +
-        ",\n  foreground=" + foreground +
-        "\n}";
+    return String.format(
+        "BinaryThreshold {\n  thresholdMin=%d,\n  thresholdMax=%d,\n  background=%d,\n  foreground=%d\n}",
+        thresholdMin,
+        thresholdMax,
+        background,
+        foreground);
   }
   
 }

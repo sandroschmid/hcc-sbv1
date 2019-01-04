@@ -66,7 +66,9 @@ public final class DistanceMap_ extends AbstractUserInputPlugIn<DistanceMap_.Inp
     
     @Override
     public String toString() {
-      return String.format("Input {\n  binaryThreshold=%s,\n  distanceMetric=%s\n}", binaryThreshold, distanceMetric);
+      return String.format("DistanceMap {\n  binaryThreshold=%s,\n  distanceMetric=%s\n}",
+          binaryThreshold,
+          distanceMetric);
     }
     
   }

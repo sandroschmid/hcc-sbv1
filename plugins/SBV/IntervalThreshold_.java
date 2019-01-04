@@ -49,7 +49,7 @@ public final class IntervalThreshold_ extends AbstractUserInputPlugIn<IntervalTh
     
     @Override
     public String toString() {
-      return String.format("[%d;%d]", lower, upper);
+      return String.format("Threshold [%d;%d]", lower, upper);
     }
     
   }
