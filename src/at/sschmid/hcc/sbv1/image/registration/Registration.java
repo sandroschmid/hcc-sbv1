@@ -83,17 +83,33 @@ public final class Registration {
   
             matchWorkerBuilder.withTx(currTx).withTy(currTy).withRot(currRot);
   
-            final MatchWorker ew1 = matchWorkerBuilder
-                .withTransformations(new Transformations().translate(currTx, currTy).rotate(currRot))
-                .build();
-            threadPool.execute(ew1);
-            matchWorkers.addFirst(ew1);
-  
-            final MatchWorker ew2 = matchWorkerBuilder
-                .withTransformations(new Transformations().rotate(currRot).translate(currTx, currTy))
-                .build();
-            threadPool.execute(ew2);
-            matchWorkers.addFirst(ew2);
+            if (currTx == 0 && currTy == 0 && currRot != 0) {
+              final MatchWorker mwRotationOnly = matchWorkerBuilder
+                  .withTransformations(new Transformations().rotate(currRot))
+                  .build();
+              threadPool.execute(mwRotationOnly);
+              matchWorkers.addFirst(mwRotationOnly);
+              
+            } else if ((currTx != 0 || currTy != 0) && currRot == 0) {
+              final MatchWorker mwTranslationOnly = matchWorkerBuilder
+                  .withTransformations(new Transformations().translate(currTx, currTy))
+                  .build();
+              threadPool.execute(mwTranslationOnly);
+              matchWorkers.addFirst(mwTranslationOnly);
+              
+            } else {
+              final MatchWorker mw1 = matchWorkerBuilder
+                  .withTransformations(new Transformations().translate(currTx, currTy).rotate(currRot))
+                  .build();
+              threadPool.execute(mw1);
+              matchWorkers.addFirst(mw1);
+    
+              final MatchWorker mw2 = matchWorkerBuilder
+                  .withTransformations(new Transformations().rotate(currRot).translate(currTx, currTy))
+                  .build();
+              threadPool.execute(mw2);
+              matchWorkers.addFirst(mw2);
+            }
           }
         }
       }
