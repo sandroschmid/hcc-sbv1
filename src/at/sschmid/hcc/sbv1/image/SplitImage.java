@@ -1,18 +1,21 @@
 package at.sschmid.hcc.sbv1.image;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Optional;
 
 public final class SplitImage {
   
   private final int splitWidth;
-  private final Set<Image> images;
+  private final Collection<Image> images;
   
   public SplitImage(final Image image) {
     this(image, 2);
   }
   
   public SplitImage(final Image image, final int n) {
-    this.images = new LinkedHashSet<>(n, 1.01f);
+    this.images = new LinkedList<>();
     this.splitWidth = image.width / n;
     
     Image currentSplit;
