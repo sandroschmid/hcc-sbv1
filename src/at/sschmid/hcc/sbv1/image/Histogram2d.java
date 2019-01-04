@@ -27,49 +27,19 @@ public final class Histogram2d {
     this.data = new int[dataSize][dataSize];
     for (int x = 0; x < image1.width; x++) {
       for (int y = 0; y < image1.height; y++) {
-        if (image1.data[x][y] > image1.maxColor) {
-          System.out.println(String.format("image1[%d,%d]=%d", x, y, image1.data[x][y]));
-        }
-        if (image2.data[x][y] > image1.maxColor) {
-          System.out.println(String.format("image2[%d,%d]=%d", x, y, image2.data[x][y]));
-        }
         this.data[image1.data[x][y]][image2.data[x][y]]++;
       }
     }
-
-//    for (int x = 0; x < dataSize; x++) {
-//      for (int y = 0; y < dataSize; y++) {
-//        final int occurrences = data[x][y];
-//        if (occurrences > 0) {
-//          System.out.println(String.format("data[%d,%d]=%d", x, y, occurrences));
-//        }
-//      }
-//    }
   }
   
   public int[][] getData() {
     return data;
   }
   
-  public Image asImage() {
-    final String name = String.format("2D-Histogram for '%s' and '%s'", image1.getName(), image2.getName());
-    final Image result = new Image(name, data.length, data.length);
-    for (int x = 0; x < data.length; x++) {
-      for (int y = 0; y < data.length; y++) {
-        final int occurrences = data[x][y];
-        result.data[x][y] = occurrences > image1.maxColor ? image1.maxColor : occurrences;
-      }
-    }
-    
-    return result;
-  }
-  
   public double[][] getProbabilities() {
     if (probabilities == null) {
       probabilities = new double[data.length][data.length];
       final double totalPixels = (double) image1.size;
-//      final double totalPixels = (double) image1.size * image2.size;
-//      final double totalPixels = (double)  probabilities.length * probabilities.length
       for (int i = 0; i < probabilities.length; i++) {
         for (int j = 0; j < probabilities.length; j++) {
           probabilities[i][j] = data[i][j] / totalPixels;

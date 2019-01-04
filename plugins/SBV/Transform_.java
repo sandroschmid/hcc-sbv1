@@ -93,7 +93,7 @@ public final class Transform_ extends AbstractUserInputPlugIn<Transform_.Input> 
   
     @Override
     public String toString() {
-      return String.format("Transform {transX=%s, transY=%s, rotDeg=%s, scaleFactor=%s, order='%s'}",
+      return String.format("Transform {\n  transX=%s,\n  transY=%s,\n  rotDeg=%s,\n  scaleFactor=%s,\n  order='%s'\n}",
           transX,
           transY,
           rotDeg,
