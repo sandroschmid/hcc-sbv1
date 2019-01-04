@@ -4,7 +4,7 @@ import at.sschmid.hcc.sbv1.image.Image;
 import at.sschmid.hcc.sbv1.image.resampling.Interpolation;
 import at.sschmid.hcc.sbv1.image.resampling.Transformations;
 
-final class ErrorWorker implements Runnable {
+final class MatchWorker implements Runnable {
   
   static Builder create() {
     return new Builder();
@@ -12,24 +12,24 @@ final class ErrorWorker implements Runnable {
   
   private Image image;
   private Image transformedImage;
-  private ErrorMetric errorMetric;
+  private MatchMetric matchMetric;
   private double tx;
   private double ty;
   private double rot;
   private Transformations transformations;
   
-  private double error;
+  private double match;
   
-  private ErrorWorker(final Image image,
+  private MatchWorker(final Image image,
                       final Image transformedImage,
-                      final ErrorMetric errorMetric,
+                      final MatchMetric matchMetric,
                       final double tx,
                       final double ty,
                       final double rot,
                       final Transformations transformations) {
     this.image = image;
     this.transformedImage = transformedImage;
-    this.errorMetric = errorMetric;
+    this.matchMetric = matchMetric;
     this.tx = tx;
     this.ty = ty;
     this.rot = rot;
@@ -40,8 +40,8 @@ final class ErrorWorker implements Runnable {
     return transformations;
   }
   
-  double getError() {
-    return error;
+  double getMatch() {
+    return match;
   }
   
   double getTx() {
@@ -61,15 +61,15 @@ final class ErrorWorker implements Runnable {
     Image testImage = transformedImage.transformation()
         .transform(transformations, Interpolation.Mode.NearestNeighbour)
         .getResult();
-    
-    error = errorMetric.getError(image, testImage);
+  
+    match = matchMetric.getMatch(image, testImage);
   }
   
   final static class Builder {
     
     private Image image;
     private Image transformedImage;
-    private ErrorMetric errorMetric;
+    private MatchMetric matchMetric;
     private double tx;
     private double ty;
     private double rot;
@@ -84,9 +84,9 @@ final class ErrorWorker implements Runnable {
       this.transformedImage = transformedImage;
       return this;
     }
-    
-    Builder withErrorMetric(final ErrorMetric errorMetric) {
-      this.errorMetric = errorMetric;
+  
+    Builder withMatchMetric(final MatchMetric matchMetric) {
+      this.matchMetric = matchMetric;
       return this;
     }
     
@@ -109,9 +109,9 @@ final class ErrorWorker implements Runnable {
       this.transformations = transformations;
       return this;
     }
-    
-    ErrorWorker build() {
-      return new ErrorWorker(image, transformedImage, errorMetric, tx, ty, rot, transformations);
+  
+    MatchWorker build() {
+      return new MatchWorker(image, transformedImage, matchMetric, tx, ty, rot, transformations);
     }
     
   }

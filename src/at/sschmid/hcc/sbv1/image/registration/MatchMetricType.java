@@ -1,13 +1,13 @@
 package at.sschmid.hcc.sbv1.image.registration;
 
-public enum ErrorMetricType {
+public enum MatchMetricType {
   SSE("Sum of Squared Error"),
   MI("Mutual Information"),
   CM("Chamfer Matching");
   
   public final String name;
   
-  ErrorMetricType(final String name) {
+  MatchMetricType(final String name) {
     this.name = name;
   }
   

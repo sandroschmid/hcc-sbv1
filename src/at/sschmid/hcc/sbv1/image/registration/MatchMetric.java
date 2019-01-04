@@ -3,10 +3,10 @@ package at.sschmid.hcc.sbv1.image.registration;
 import at.sschmid.hcc.sbv1.image.Image;
 
 @FunctionalInterface
-public interface ErrorMetric {
+public interface MatchMetric {
   
-  static ErrorMetric create(final ErrorMetricType type, final Image image1, final Image image2) {
-    ErrorMetric impl;
+  static MatchMetric create(final MatchMetricType type, final Image image1, final Image image2) {
+    MatchMetric impl;
     switch (type) {
       case SSE:
         impl = new SquaredSumOfErrorMetric();
@@ -18,7 +18,7 @@ public interface ErrorMetric {
         impl = new ChamferMatchingMetric();
         break;
       default:
-        throw new IllegalArgumentException("Unknown error metric type " + type);
+        throw new IllegalArgumentException("Unknown match metric type " + type);
     }
     
     impl.init(image1, image2);
@@ -29,10 +29,10 @@ public interface ErrorMetric {
     // nothing to do
   }
   
-  default boolean isBetter(final double error, final double bestError) {
-    return error < bestError;
+  default boolean isBetter(final double match, final double bestMatch) {
+    return match < bestMatch;
   }
   
-  double getError(final Image image1, final Image image2);
+  double getMatch(final Image image1, final Image image2);
   
 }

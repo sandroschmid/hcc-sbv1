@@ -14,20 +14,20 @@ public final class Registration {
     return new Builder();
   }
   
-  private final ErrorMetric errorMetric;
+  private final MatchMetric matchMetric;
   private final double stepWidthTranslation;
   private final double stepWidthRotation;
   private final int searchRadius;
   private final int optimizationRuns;
   private final double scalePerRun;
   
-  private Registration(final ErrorMetric errorMetric,
+  private Registration(final MatchMetric matchMetric,
                        final double stepWidthTranslation,
                        final double stepWidthRotation,
                        final int searchRadius,
                        final int optimizationRuns,
                        final double scalePerRun) {
-    if (errorMetric == null
+    if (matchMetric == null
         || stepWidthTranslation <= 0
         || stepWidthRotation <= 0
         || searchRadius <= 0
@@ -37,7 +37,7 @@ public final class Registration {
       throw new IllegalArgumentException();
     }
     
-    this.errorMetric = errorMetric;
+    this.matchMetric = matchMetric;
     this.stepWidthTranslation = stepWidthTranslation;
     this.stepWidthRotation = stepWidthRotation;
     this.searchRadius = searchRadius;
@@ -58,7 +58,7 @@ public final class Registration {
     double bestTx = 0;
     double bestTy = 0;
     double bestRot = 0;
-    double bestError = errorMetric.getError(image, transformedImage);
+    double bestMatch = matchMetric.getMatch(image, transformedImage);
     Transformations bestTransformations = null;
     
     // offsets for further runs
@@ -68,11 +68,11 @@ public final class Registration {
     
     for (int run = 0; run < optimizationRuns; run++) {
       final ExecutorService threadPool = Utility.threadPool();
-      final Deque<ErrorWorker> errorWorkers = new LinkedList<>();
-      final ErrorWorker.Builder errorWorkerBuilder = ErrorWorker.create()
+      final Deque<MatchWorker> matchWorkers = new LinkedList<>();
+      final MatchWorker.Builder matchWorkerBuilder = MatchWorker.create()
           .withImage(image)
           .withTransformedImage(transformedImage)
-          .withErrorMetric(errorMetric);
+          .withMatchMetric(matchMetric);
       
       for (int xIdx = -searchRadius; xIdx < searchRadius; xIdx++) {
         for (int yIdx = -searchRadius; yIdx < searchRadius; yIdx++) {
@@ -81,33 +81,33 @@ public final class Registration {
             final double currTy = currMidTy + yIdx * stepWidthTranslation;
             final double currRot = currMidRot + rotIdx * stepWidthRotation;
   
-            errorWorkerBuilder.withTx(currTx).withTy(currTy).withRot(currRot);
+            matchWorkerBuilder.withTx(currTx).withTy(currTy).withRot(currRot);
   
-            final ErrorWorker ew1 = errorWorkerBuilder
+            final MatchWorker ew1 = matchWorkerBuilder
                 .withTransformations(new Transformations().translate(currTx, currTy).rotate(currRot))
                 .build();
             threadPool.execute(ew1);
-            errorWorkers.addFirst(ew1);
+            matchWorkers.addFirst(ew1);
   
-            final ErrorWorker ew2 = errorWorkerBuilder
+            final MatchWorker ew2 = matchWorkerBuilder
                 .withTransformations(new Transformations().rotate(currRot).translate(currTx, currTy))
                 .build();
             threadPool.execute(ew2);
-            errorWorkers.addFirst(ew2);
+            matchWorkers.addFirst(ew2);
           }
         }
       }
   
       Utility.join(threadPool);
   
-      for (final ErrorWorker errorWorker : errorWorkers) {
-        final double error = errorWorker.getError();
-        if (errorMetric.isBetter(error, bestError)) {
-          bestError = error;
-          bestTx = errorWorker.getTx();
-          bestTy = errorWorker.getTy();
-          bestRot = errorWorker.getRot();
-          bestTransformations = errorWorker.getTransformations();
+      for (final MatchWorker matchWorker : matchWorkers) {
+        final double match = matchWorker.getMatch();
+        if (matchMetric.isBetter(match, bestMatch)) {
+          bestMatch = match;
+          bestTx = matchWorker.getTx();
+          bestTy = matchWorker.getTy();
+          bestRot = matchWorker.getRot();
+          bestTransformations = matchWorker.getTransformations();
         }
       }
   
@@ -124,8 +124,8 @@ public final class Registration {
   }
   
   public static class Builder {
-    
-    private ErrorMetric errorMetric;
+  
+    private MatchMetric matchMetric;
     private double stepWidthTranslation;
     private double stepWidthRotation;
     private int searchRadius;
@@ -135,9 +135,9 @@ public final class Registration {
     private Builder() {
       // nothing to do
     }
-    
-    public Builder errorMetric(final ErrorMetric errorMetric) {
-      this.errorMetric = errorMetric;
+  
+    public Builder errorMetric(final MatchMetric matchMetric) {
+      this.matchMetric = matchMetric;
       return this;
     }
     
@@ -167,7 +167,7 @@ public final class Registration {
     }
     
     public Registration build() {
-      return new Registration(errorMetric,
+      return new Registration(matchMetric,
           stepWidthTranslation,
           stepWidthRotation,
           searchRadius,

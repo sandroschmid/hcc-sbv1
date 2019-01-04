@@ -1,8 +1,8 @@
 import at.sschmid.hcc.sbv1.image.Image;
 import at.sschmid.hcc.sbv1.image.SplitImage;
 import at.sschmid.hcc.sbv1.image.imagej.AbstractUserInputPlugIn;
-import at.sschmid.hcc.sbv1.image.registration.ErrorMetric;
-import at.sschmid.hcc.sbv1.image.registration.ErrorMetricType;
+import at.sschmid.hcc.sbv1.image.registration.MatchMetric;
+import at.sschmid.hcc.sbv1.image.registration.MatchMetricType;
 import at.sschmid.hcc.sbv1.image.registration.Registration;
 import at.sschmid.hcc.sbv1.image.resampling.Interpolation;
 import at.sschmid.hcc.sbv1.image.resampling.Transformation;
@@ -24,7 +24,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
   private static final double DEFAULT_ROTATION = 11.5;
   private static final boolean DEFAULT_ROTATE_FIRST = false;
   private static final int DEFAULT_OPTIMIZATION_RUNS = 5;
-  private static final ErrorMetricType DEFAULT_METRIC = ErrorMetricType.CM;
+  private static final MatchMetricType DEFAULT_METRIC = MatchMetricType.CM;
   
   @Override
   public void process(final Image image) {
@@ -56,8 +56,8 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     dialog.addCheckbox("Rotate first", DEFAULT_ROTATE_FIRST);
   
     dialog.addMessage("Registration:");
-    dialog.addChoice("Error metric",
-        Arrays.stream(ErrorMetricType.values()).map(Enum::toString).toArray(String[]::new),
+    dialog.addChoice("Match metric",
+        Arrays.stream(MatchMetricType.values()).map(Enum::toString).toArray(String[]::new),
         DEFAULT_METRIC.name);
     dialog.addNumericField("Search radius", DEFAULT_SEARCH_RADIUS, 0);
     dialog.addNumericField("Step width (translation)", DEFAULT_STEP_WIDTH_TRANS, 3);
@@ -73,7 +73,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
         dialog.getNextNumber(),
         dialog.getNextNumber(),
         dialog.getNextBoolean(),
-        ErrorMetricType.values()[dialog.getNextChoiceIndex()],
+        MatchMetricType.values()[dialog.getNextChoiceIndex()],
         (int) dialog.getNextNumber(),
         dialog.getNextNumber(),
         dialog.getNextNumber(),
@@ -82,14 +82,14 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
   }
   
   private void registration(final Image image1, final Image image2) {
-    final ErrorMetric errorMetric = ErrorMetric.create(input.errorMetricType, image1, image2);
-    final double initialError = errorMetric.getError(image1, image2);
-    IJ.log(String.format("Initial error = %.0f", initialError));
+    final MatchMetric matchMetric = MatchMetric.create(input.matchMetricType, image1, image2);
+    final double initialError = matchMetric.getMatch(image1, image2);
+    IJ.log(String.format("Initial match = %.2f", initialError));
     image1.show(String.format("%s - image 1", pluginName));
-    image2.show(String.format("%s - image 2 (e=%.0f)", pluginName, initialError));
+    image2.show(String.format("%s - image 2 (e=%.2f)", pluginName, initialError));
     
     final Registration registration = Registration.create()
-        .errorMetric(errorMetric)
+        .errorMetric(matchMetric)
         .stepWidthTranslation(input.stepWidthTranslation)
         .stepWidthRotation(input.stepWidthRotation)
         .searchRadius(input.searchRadius)
@@ -111,13 +111,13 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
         .transform(bestTransformations, Interpolation.Mode.BiLinear)
         .getResult();
   
-    final double bestError = errorMetric.getError(image1, registeredImage);
-    addResult(registeredImage, String.format("%s - registered image (e=%.0f)", pluginName, bestError));
+    final double bestMatch = matchMetric.getMatch(image1, registeredImage);
+    addResult(registeredImage, String.format("%s - registered image (e=%.2f)", pluginName, bestMatch));
     addResult(image1.calculation(registeredImage).difference(), String.format("%s - difference", pluginName));
   
-    final double diff = bestError - initialError;
+    final double diff = Math.abs(bestMatch - initialError);
     final double diffRelative = diff / initialError * 100;
-    IJ.log(String.format("Best error = %.0f (difference = %.0f = %.2f%%)", bestError, diff, diffRelative));
+    IJ.log(String.format("Best match = %.2f (difference = %.2f = %.2f%%)", bestMatch, diff, diffRelative));
     IJ.log(String.format("Best transformations: %s", bestTransformations));
   }
   
@@ -128,8 +128,8 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     private final double translationY;
     private final double rotation;
     private final boolean rotateFirst;
-    
-    private final ErrorMetricType errorMetricType;
+  
+    private final MatchMetricType matchMetricType;
     private final int searchRadius;
     private final double stepWidthTranslation;
     private final double stepWidthRotation;
@@ -141,7 +141,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
           final double translationY,
           final double rotation,
           final boolean rotateFirst,
-          final ErrorMetricType errorMetricType,
+          final MatchMetricType matchMetricType,
           final int searchRadius,
           final double stepWidthTranslation,
           final double stepWidthRotation,
@@ -152,7 +152,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
       this.translationY = translationY;
       this.rotation = rotation;
       this.rotateFirst = rotateFirst;
-      this.errorMetricType = errorMetricType;
+      this.matchMetricType = matchMetricType;
       this.searchRadius = searchRadius;
       this.stepWidthTranslation = stepWidthTranslation;
       this.stepWidthRotation = stepWidthRotation;
@@ -176,9 +176,9 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
             .append(",\n   rotate first=")
             .append(rotateFirst);
       }
-      
-      return result.append(",\n  Registration:\n   errorMetricType=")
-          .append(errorMetricType)
+  
+      return result.append(",\n  Registration:\n   matchMetricType=")
+          .append(matchMetricType)
           .append(",\n   searchRadius=")
           .append(searchRadius)
           .append(",\n   stepWidthTranslation=")

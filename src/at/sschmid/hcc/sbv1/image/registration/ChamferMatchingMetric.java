@@ -3,7 +3,7 @@ package at.sschmid.hcc.sbv1.image.registration;
 import at.sschmid.hcc.sbv1.image.Image;
 import at.sschmid.hcc.sbv1.image.segmentation.BinaryThreshold;
 
-final class ChamferMatchingMetric implements ErrorMetric {
+final class ChamferMatchingMetric implements MatchMetric {
   
   private Image image1Edges;
   
@@ -17,7 +17,7 @@ final class ChamferMatchingMetric implements ErrorMetric {
   }
   
   @Override
-  public double getError(final Image image1, final Image image2) {
+  public double getMatch(final Image image1, final Image image2) {
     final double[][] image2Distances = image2.distanceMap(DistanceMetric.Euklid).calculate();
     double sum = 0d;
     for (int x = 0; x < image1.width; x++) {
