@@ -12,7 +12,6 @@ public final class Histogram {
   private boolean calculatedStatistics;
   private int minOccurringColor;
   private int maxOccurringColor;
-  private double averageOccurrences;
   private int minColor;
   private int maxColor;
   private double averageColor;
@@ -26,6 +25,10 @@ public final class Histogram {
         this.data[image.data[x][y]]++;
       }
     }
+  }
+  
+  public Image getImage() {
+    return image;
   }
   
   public int[] getData() {
@@ -44,6 +47,10 @@ public final class Histogram {
     return probabilities;
   }
   
+  public OptimalThreshold optimalThreshold() {
+    return new OptimalThreshold(this);
+  }
+  
   public int getMinOccurringColor() {
     calculateStatistics();
     return minOccurringColor;
@@ -52,11 +59,6 @@ public final class Histogram {
   public int getMaxOccurringColor() {
     calculateStatistics();
     return maxOccurringColor;
-  }
-  
-  public double getAverageOccurrences() {
-    calculateStatistics();
-    return averageOccurrences;
   }
   
   public int getMinColor() {
@@ -82,57 +84,53 @@ public final class Histogram {
     if (image.hasName()) {
       builder.append(" (").append(image.getName()).append(")");
     }
-    
-    return builder.append(" { count=")
+  
+    return builder.append(" {\n  count=")
         .append(count)
-        .append(", minColor=")
+        .append(",\n  minColor=")
         .append(minColor)
-        .append(", maxColor=")
+        .append(",\n  maxColor=")
         .append(maxColor)
-        .append(", averageColor=")
+        .append(",\n  averageColor=")
         .append(averageColor)
-        .append(", minOccurringColor=")
+        .append(",\n  minOccurringColor=")
         .append(minOccurringColor)
         .append(" (")
         .append(data[minOccurringColor])
-        .append("), maxOccurringColor=")
+        .append("),\n  maxOccurringColor=")
         .append(maxOccurringColor)
         .append(" (")
         .append(data[maxOccurringColor])
-        .append("), averageOccurrences=")
-        .append(averageOccurrences)
-        .append(", data=")
+        .append("),\n  data=")
         .append(Arrays.toString(data))
-        .append(" }")
+        .append("\n}")
         .toString();
   }
   
   private void calculateStatistics() {
     if (!calculatedStatistics) {
-      minOccurringColor = image.size;
-      maxOccurringColor = -1;
-      averageOccurrences = 0d;
-      minColor = image.maxColor;
+      minOccurringColor = 0;
+      maxOccurringColor = 0;
+      minColor = image.maxColor + 1;
       maxColor = -1;
       averageColor = 0d;
       
       int occurringColors = 0;
-      
-      for (int color = 0; color < image.maxColor; color++) {
+  
+      for (int color = 0; color <= image.maxColor; color++) {
         final int occurrences = data[color];
-        
-        averageOccurrences += occurrences;
-        if (occurrences < minOccurringColor) {
-          minOccurringColor = color;
-        }
-        
-        if (occurrences > maxOccurringColor) {
-          maxOccurringColor = color;
-        }
-        
+    
         if (occurrences > 0) {
-          occurringColors++;
-          averageColor += color;
+          if (occurrences < data[minOccurringColor]) {
+            minOccurringColor = color;
+          }
+      
+          if (occurrences > data[maxOccurringColor]) {
+            maxOccurringColor = color;
+          }
+      
+          occurringColors += occurrences;
+          averageColor += occurrences * color;
           
           if (color < minColor) {
             minColor = color;
@@ -144,9 +142,7 @@ public final class Histogram {
         }
       }
       
-      averageOccurrences /= (double) (image.maxColor + 1);
       averageColor /= (double) occurringColors;
-      
       calculatedStatistics = true;
     }
   }

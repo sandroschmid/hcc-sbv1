@@ -116,6 +116,10 @@ public final class Image {
     return new Histogram2d(this, other);
   }
   
+  public OptimalThreshold optimalThreshold() {
+    return histogram().optimalThreshold();
+  }
+  
   public Transformation transformation() {
     return new Transformation(this);
   }
@@ -138,6 +142,10 @@ public final class Image {
   
   public ImageCalculation calculation(final Image other) {
     return new ImageCalculation(this, other);
+  }
+  
+  public Segment.Builder segment() {
+    return Segment.create(this);
   }
   
   public boolean sizeEqualsTo(final Image other) {

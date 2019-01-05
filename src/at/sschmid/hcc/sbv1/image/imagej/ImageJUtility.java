@@ -1,11 +1,15 @@
 package at.sschmid.hcc.sbv1.image.imagej;
 
 import at.sschmid.hcc.sbv1.image.Image;
+import at.sschmid.hcc.sbv1.utility.Point;
 import ij.ImagePlus;
+import ij.gui.PointRoi;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 
 import java.awt.*;
+import java.util.Collection;
+import java.util.LinkedList;
 
 public final class ImageJUtility {
   
@@ -153,6 +157,21 @@ public final class ImageJUtility {
     }
     
     return outArray1D;
+  }
+  
+  public static Collection<Point> getSeedPoints(final ImagePlus imagePlus) {
+    final PointRoi roi = (PointRoi) imagePlus.getRoi();
+    final Rectangle rect = roi.getBounds();
+    final int nPoints = roi.getCount(0);
+    final int[] xCoords = roi.getXCoordinates();
+    final int[] yCoords = roi.getYCoordinates();
+  
+    final Collection<Point> seeds = new LinkedList<>();
+    for (int i = 0; i < nPoints; i++) {
+      seeds.add(new Point(xCoords[i] + rect.x, yCoords[i] + rect.y));
+    }
+  
+    return seeds;
   }
   
 }

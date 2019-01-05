@@ -1,16 +1,14 @@
 import at.sschmid.hcc.sbv1.image.Image;
 import at.sschmid.hcc.sbv1.image.imagej.AbstractUserInputPlugIn;
+import at.sschmid.hcc.sbv1.image.imagej.ImageJUtility;
 import at.sschmid.hcc.sbv1.image.segmentation.BinaryThreshold;
 import at.sschmid.hcc.sbv1.image.segmentation.Neighbour;
 import at.sschmid.hcc.sbv1.image.segmentation.Segmentation;
 import at.sschmid.hcc.sbv1.utility.Point;
 import ij.gui.GenericDialog;
-import ij.gui.PointRoi;
 
-import java.awt.*;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedList;
 
 public final class RegionGrowing_ extends AbstractUserInputPlugIn<RegionGrowing_.Input> {
   
@@ -27,7 +25,7 @@ public final class RegionGrowing_ extends AbstractUserInputPlugIn<RegionGrowing_
   
   @Override
   protected void process(final Image image) {
-    final Collection<Point> seeds = getSeedPoints();
+    final Collection<Point> seeds = ImageJUtility.getSeedPoints(imagePlus);
     
     final Segmentation segmentation = image.segmentation();
     final Image resultGrowing = segmentation.regionGrowing(seeds, input.nb, input.bt);
@@ -37,19 +35,6 @@ public final class RegionGrowing_ extends AbstractUserInputPlugIn<RegionGrowing_
     addResult(resultLabelling, String.format("%s (%s with labelling)", pluginName, input.nb));
     
     addResult(image.calculation(resultGrowing).and());
-  }
-  
-  private Collection<Point> getSeedPoints() {
-    final PointRoi roi = (PointRoi) imagePlus.getRoi();
-    final Rectangle rect = roi.getBounds();
-    final int nPoints = roi.getCount(0);
-    final int[] xCoords = roi.getXCoordinates();
-    final int[] yCoords = roi.getYCoordinates();
-    final Collection<Point> seeds = new LinkedList<>();
-    for (int i = 0; i < nPoints; i++) {
-      seeds.add(new Point(xCoords[i] + rect.x, yCoords[i] + rect.y));
-    }
-    return seeds;
   }
   
   @Override
