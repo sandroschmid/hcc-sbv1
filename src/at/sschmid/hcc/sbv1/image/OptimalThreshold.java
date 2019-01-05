@@ -18,39 +18,38 @@ public final class OptimalThreshold {
     if (globalThreshold == null) {
       double threshold = image.maxColor / 2.0d;
   
-      double sumBg;
-      int countBg;
-      double meanBg;
+      double bgSum = 0d;
+      int bgCount = 0;
+      double bgAverage;
   
-      double sumFg;
-      int countFg;
-      double meanFg;
+      double fgSum = 0d;
+      int fgCount = 0;
+      double fgAverage;
   
       double tempThreshold;
   
       do {
-        sumBg = sumFg = 0d;
-        countBg = countFg = 0;
-    
         for (int x = 0; x < image.width; x++) {
           for (int y = 0; y < image.height; y++) {
             final int color = image.data[x][y];
             if (color < threshold) {
-              sumBg += color;
-              countBg++;
+              bgSum += color;
+              bgCount++;
             } else {
-              sumFg += color;
-              countFg++;
+              fgSum += color;
+              fgCount++;
             }
           }
         }
-    
-        meanBg = countBg > 0 ? sumBg / countBg : 0;
-        meanFg = countFg > 0 ? sumFg / countFg : 0;
-    
-        tempThreshold = (meanBg + meanFg) / 2.0d;
+  
+        bgAverage = bgCount > 0 ? bgSum / bgCount : 0;
+        fgAverage = fgCount > 0 ? fgSum / fgCount : 0;
+  
+        tempThreshold = (bgAverage + fgAverage) / 2.0d;
         if (threshold != tempThreshold) {
           threshold = tempThreshold;
+          bgSum = fgSum = 0d;
+          bgCount = fgCount = 0;
         } else {
           break;
         }
