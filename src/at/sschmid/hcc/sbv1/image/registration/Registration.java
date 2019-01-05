@@ -30,13 +30,13 @@ public final class Registration {
                        final int optimizationRuns,
                        final double scalePerRun) {
     if (matchMetric == null
-        || stepWidthTranslation <= 0
-        || stepWidthRotation <= 0
         || searchRadiusTranslation <= 0
         || searchRadiusRotation <= 0
+        || stepWidthTranslation < 0
+        || stepWidthRotation < 0
         || optimizationRuns <= 0
         || scalePerRun <= 0
-        || scalePerRun >= 1) {
+        || scalePerRun > 1) {
       throw new IllegalArgumentException();
     }
     

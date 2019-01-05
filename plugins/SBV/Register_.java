@@ -22,7 +22,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
   private static final MatchMetricType DEFAULT_METRIC = MatchMetricType.MI;
   private static final double DEFAULT_SEARCH_RADIUS_TRANS = 10;
   private static final double DEFAULT_SEARCH_RADIUS_ROT = DEFAULT_SEARCH_RADIUS_TRANS;
-  private static final double DEFAULT_STEP_WIDTH_TRANS = 10d;
+  private static final double DEFAULT_STEP_WIDTH_TRANS = 2d;
   private static final double DEFAULT_STEP_WIDTH_ROT = DEFAULT_STEP_WIDTH_TRANS;
   private static final int DEFAULT_OPTIMIZATION_RUNS = 5;
   private static final double DEFAULT_SCALE_PER_RUN = 0.9d;
@@ -140,6 +140,8 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     private final double stepWidthRotation;
     private final int optimizationRuns;
     private final double scalePerRun;
+  
+    private Transformations transformations;
     
     Input(final boolean splitImage,
           final double translationX,
@@ -169,22 +171,10 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     
     @Override
     public String toString() {
-      final StringBuilder result = new StringBuilder()
-          .append("Register {\n  Transformation:\n   splitImage=")
-          .append(splitImage);
-      
-      if (!splitImage) {
-        result.append(",\n   translationX=")
-            .append(translationX)
-            .append(",\n   translationY=")
-            .append(translationY)
-            .append(",\n   rotation=")
-            .append(rotation)
-            .append(",\n   rotate first=")
-            .append(rotateFirst);
-      }
-  
-      return result.append(",\n  Registration:\n   matchMetricType=")
+      return new StringBuilder()
+          .append("Register {\n  Transformation: ")
+          .append(splitImage ? "split image" : getTransformations())
+          .append(",\n  Registration:\n   matchMetricType=")
           .append(matchMetricType)
           .append(",\n   searchRadiusTranslation=")
           .append(searchRadiusTranslation)
@@ -203,9 +193,13 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     }
     
     private Transformations getTransformations() {
-      return rotateFirst
-          ? new Transformations().rotate(rotation).translate(translationX, translationY)
-          : new Transformations().translate(translationX, translationY).rotate(rotation);
+      if (transformations == null) {
+        transformations = rotateFirst
+            ? new Transformations().rotate(rotation).translate(translationX, translationY)
+            : new Transformations().translate(translationX, translationY).rotate(rotation);
+      }
+  
+      return transformations;
     }
     
   }
