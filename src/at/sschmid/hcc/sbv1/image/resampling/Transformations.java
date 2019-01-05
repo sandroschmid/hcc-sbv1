@@ -76,7 +76,7 @@ public final class Transformations {
     
     @Override
     public String toString() {
-      return String.format("Translate [%.1f, %.1f]", x, y);
+      return String.format("Translate [%.1f; %.1f]", x, y);
     }
     
   }
