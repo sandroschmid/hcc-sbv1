@@ -121,7 +121,7 @@ public final class Image {
   }
   
   public OptimalThreshold optimalThreshold() {
-    return histogram().optimalThreshold();
+    return new OptimalThreshold(this);
   }
   
   public Transformation transformation() {

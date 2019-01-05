@@ -66,7 +66,7 @@ public final class Segment implements ImageGenerator {
   
   public int getOptimalThreshold() {
     if (optimalThreshold == null) {
-      this.optimalThreshold = segmentImage.histogram().optimalThreshold().get();
+      this.optimalThreshold = segmentImage.optimalThreshold().get();
     }
     
     return optimalThreshold;

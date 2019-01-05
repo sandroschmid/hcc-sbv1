@@ -1,43 +1,62 @@
 package at.sschmid.hcc.sbv1.image;
 
 import at.sschmid.hcc.sbv1.image.segmentation.BinaryThreshold;
-import ij.IJ;
 
 import java.util.List;
 
 public final class OptimalThreshold {
   
   private final Image image;
-  private final Histogram histogram;
   
   private Integer globalThreshold;
   
-  OptimalThreshold(final Histogram histogram) {
-    this.image = histogram.getImage();
-    this.histogram = histogram;
+  OptimalThreshold(final Image image) {
+    this.image = image;
   }
   
   public int get() {
     if (globalThreshold == null) {
-      double prevThreshold = histogram.getAverageColor();
+      double threshold = (int) (image.maxColor / 2.0d + 0.5d);
   
-      Image objectsMask = image.binary(new BinaryThreshold((int) prevThreshold + 1, 0, image.maxColor));
-      Image objects = image.calculation(objectsMask).and();
+      double sumBg;
+      int countBg;
+      double meanBg;
   
-      double threshold = (prevThreshold + objects.histogram().getAverageColor()) / 2.0d;
-      double prevDiff = -1;
-      double diff = Math.abs(prevThreshold - threshold);
-      while (prevDiff != diff) {
-        objectsMask = image.binary(new BinaryThreshold((int) prevThreshold + 1, 0, image.maxColor));
-        objects = image.calculation(objectsMask).and();
+      double sumFg;
+      int countFg;
+      double meanFg;
   
-        threshold = (prevThreshold + objects.histogram().getAverageColor()) / 2.0d;
-        prevDiff = diff;
-        diff = Math.abs(prevThreshold - threshold);
-        IJ.log(String.format("prevT=%.2f, t=%.2f, diff=%.2f", prevThreshold, threshold, diff));
-      }
+      double tempThreshold;
   
-      globalThreshold = (int) (prevThreshold + 0.5d);
+      do {
+        sumBg = sumFg = 0d;
+        countBg = countFg = 0;
+    
+        for (int x = 0; x < image.width; x++) {
+          for (int y = 0; y < image.height; y++) {
+            final int color = image.data[x][y];
+            if (color < threshold) {
+              sumBg += color;
+              countBg++;
+            } else {
+              sumFg += color;
+              countFg++;
+            }
+          }
+        }
+    
+        meanBg = countBg > 0 ? sumBg / countBg : 0;
+        meanFg = countFg > 0 ? sumFg / countFg : 0;
+    
+        tempThreshold = (meanBg + meanFg) / 2.0d;
+        if (threshold != tempThreshold) {
+          threshold = tempThreshold;
+        } else {
+          break;
+        }
+      } while (true);
+  
+      globalThreshold = (int) (threshold + 0.5d);
     }
     
     return globalThreshold;

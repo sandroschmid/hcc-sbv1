@@ -10,20 +10,21 @@ public final class OptimalThreshold_ extends AbstractUserInputPlugIn<OptimalThre
   @Override
   protected void process(final Image image) {
     final OptimalThreshold optimalThreshold = image.optimalThreshold();
-    if ("All".equals(input.whichOne) || "Global".equals(input.whichOne)) {
+    final boolean isAll = "All".equals(input.whichOne);
+    if (isAll || "Global".equals(input.whichOne)) {
       global(image, optimalThreshold);
     }
   
-    if ("All".equals(input.whichOne) || "Local".equals(input.whichOne)) {
+    if (isAll || "Local".equals(input.whichOne)) {
       local(image, optimalThreshold);
     }
   }
   
   @Override
   protected void setupDialog(final GenericDialog dialog) {
-    dialog.addChoice("Which?", new String[] { "All", "Global", "Local" }, "Local");
+    dialog.addChoice("Which?", new String[] { "All", "Global", "Local" }, "All");
     final String[] sizeChoices = new String[] { "9", "21", "51", "101", "201" };
-    final String defaultSizeChoice = "101";
+    final String defaultSizeChoice = "51";
     dialog.addChoice("Segment width", sizeChoices, defaultSizeChoice);
     dialog.addChoice("Segment height", sizeChoices, defaultSizeChoice);
   }
