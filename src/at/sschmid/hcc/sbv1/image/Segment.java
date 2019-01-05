@@ -1,7 +1,6 @@
 package at.sschmid.hcc.sbv1.image;
 
 import at.sschmid.hcc.sbv1.utility.Point;
-import ij.IJ;
 
 public final class Segment implements ImageGenerator {
   
@@ -67,9 +66,7 @@ public final class Segment implements ImageGenerator {
   
   public int getOptimalThreshold() {
     if (optimalThreshold == null) {
-      final OptimalThreshold optimalThreshold = segmentImage.histogram().optimalThreshold();
-      IJ.log(String.format("optimal threshold for segment %s: %d", toString(), optimalThreshold.get()));
-      this.optimalThreshold = optimalThreshold.get();
+      this.optimalThreshold = segmentImage.histogram().optimalThreshold().get();
     }
     
     return optimalThreshold;

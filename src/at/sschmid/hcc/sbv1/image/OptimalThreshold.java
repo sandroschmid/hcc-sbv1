@@ -1,6 +1,7 @@
 package at.sschmid.hcc.sbv1.image;
 
 import at.sschmid.hcc.sbv1.image.segmentation.BinaryThreshold;
+import ij.IJ;
 
 import java.util.List;
 
@@ -33,9 +34,10 @@ public final class OptimalThreshold {
         threshold = (prevThreshold + objects.histogram().getAverageColor()) / 2.0d;
         prevDiff = diff;
         diff = Math.abs(prevThreshold - threshold);
+        IJ.log(String.format("prevT=%.2f, t=%.2f, diff=%.2f", prevThreshold, threshold, diff));
       }
   
-      globalThreshold = (int) (threshold + 0.5d);
+      globalThreshold = (int) (prevThreshold + 0.5d);
     }
     
     return globalThreshold;
