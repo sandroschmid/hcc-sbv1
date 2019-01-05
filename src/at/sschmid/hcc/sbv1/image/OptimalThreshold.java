@@ -16,7 +16,7 @@ public final class OptimalThreshold {
   
   public int get() {
     if (globalThreshold == null) {
-      double threshold = (int) (image.maxColor / 2.0d + 0.5d);
+      double threshold = image.maxColor / 2.0d;
   
       double sumBg;
       int countBg;
