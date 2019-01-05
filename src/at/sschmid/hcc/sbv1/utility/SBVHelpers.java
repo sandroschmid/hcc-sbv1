@@ -1,32 +1,56 @@
 package at.sschmid.hcc.sbv1.utility;
 
+import at.sschmid.hcc.sbv1.image.Image;
+
 public class SBVHelpers {
   
-  public static int getBilinearInterpolatedValue(int[][] inArr, double newX, double newY, int width, int height) {
-    int X0 = (int) (newX);
-    int Y0 = (int) (newY);
-    
-    //get delta
-    double deltaX = newX - X0;
-    double deltaY = newY - Y0;
-    
-    //run through the four nearest coordinates
-    
-    double result = (1 - deltaX) * (1 - deltaY) * inArr[X0][Y0];
-    
-    if (width > X0 + 1) {
-      result += deltaX * (1 - deltaY) * inArr[X0 + 1][Y0];
-    }
+  private static final int BG = 0;
   
-    if (height > Y0 + 1) {
-      result += (1 - deltaX) * deltaY * inArr[X0][Y0 + 1];
-    }
-  
-    if ((width > X0 + 1) && (height > Y0 + 1)) {
-      result += deltaX * deltaY * inArr[X0 + 1][Y0 + 1];
-    }
+  public static int getNNInterpolatedValue(int[][] inImg, double posX, double posY, int width, int height) {
+//    int nnX = (int) (posX + 0.5);
+//    int nnY = (int) (posY + 0.5);
+//
+//    int result;
+//    if (nnX >= 0 && nnX < width && nnY >= 0 && nnY < height) {
+//      result = inImg[nnX][nnY];
+//    } else {
+//      result = BG;
+//    }
+//
+//    return result;
     
-    return (int) (result + 0.5);
+    final Image image = new Image(inImg, width, height);
+    return image.interpolation().getNearestNeighbourColor(posX, posY);
+  }
+  
+  public static int getBilinearInterpolatedValue(int[][] inImg, double posX, double posY, int width, int height) {
+//    int X0 = (int) (posX);
+//    int Y0 = (int) (posY);
+//
+//    //get delta
+//    double deltaX = posX - X0;
+//    double deltaY = posY - Y0;
+//
+//    //run through the four nearest coordinates
+//
+//    double result = (1 - deltaX) * (1 - deltaY) * inImg[X0][Y0];
+//
+//    if (width > X0 + 1) {
+//      result += deltaX * (1 - deltaY) * inImg[X0 + 1][Y0];
+//    }
+//
+//    if (height > Y0 + 1) {
+//      result += (1 - deltaX) * deltaY * inImg[X0][Y0 + 1];
+//    }
+//
+//    if ((width > X0 + 1) && (height > Y0 + 1)) {
+//      result += deltaX * deltaY * inImg[X0 + 1][Y0 + 1];
+//    }
+//
+//    return (int) (result + 0.5);
+    
+    final Image image = new Image(inImg, width, height);
+    return image.interpolation().getBiLinearColor(posX, posY);
   }
   
   public static int[][] transformImage(int[][] inImg,
@@ -34,7 +58,8 @@ public class SBVHelpers {
                                        int height,
                                        double transX,
                                        double transY,
-                                       double rotAngle) {
+                                       double rotAngle,
+                                       boolean useBiLinear) {
     
     //allocate result image
     int[][] resultImg = new int[width][height];
@@ -69,15 +94,10 @@ public class SBVHelpers {
         posY = posY + heightHalf;
         
         //6) get interpolated value
-        // TODO bilinear interpolation
-        int nnX = (int) (posX + 0.5);
-        int nnY = (int) (posY + 0.5);
-        
-        //6) assign value from original image inImg if inside the image boundaries
-        if (nnX >= 0 && nnX < width && nnY >= 0 && nnY < height) {
-          resultImg[x][y] = inImg[nnX][nnY];
+        if (useBiLinear) {
+          resultImg[x][y] = getBilinearInterpolatedValue(inImg, posX, posY, width, height);
         } else {
-          resultImg[x][y] = 255;
+          resultImg[x][y] = getNNInterpolatedValue(inImg, posX, posY, width, height);
         }
       }
     }

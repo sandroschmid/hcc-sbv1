@@ -1,3 +1,4 @@
+import at.sschmid.hcc.sbv1.image.Image;
 import at.sschmid.hcc.sbv1.image.imagej.ImageJUtility;
 import at.sschmid.hcc.sbv1.utility.SBVHelpers;
 import ij.IJ;
@@ -6,48 +7,6 @@ import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 
 public class LuisaRegister_ implements PlugInFilter {
-  
-  public int[][] transformImage(int[][] inImg, int width, int height, double transX, double transY, double rotAngle) {
-    int[][] resultImg = new int[width][height];
-    
-    // prepare cross theta, sin theta
-    double cosTheta = Math.cos(Math.toRadians(-rotAngle)); // - wegen Backward mapping
-    double sinTheta = Math.sin(Math.toRadians(-rotAngle));
-    double widthHalf = width / 2.0;
-    double heightHalf = height / 2.0;
-    // iterate over all pixels and calc value utuilizing backward mapping
-    for (int x = 0; x < width; x++) {
-      for (int y = 0; y < height; y++) {
-        
-        // rotate
-        // double posX = x - widthHalf;
-        // double posY = y - heightHalf;
-        
-        double posX = (x - widthHalf) * cosTheta + (y - heightHalf) * sinTheta;
-        double posY = -(x - widthHalf) * sinTheta + (y - heightHalf) * cosTheta;
-        
-        // translate
-        posX -= transX; // wegen backward mapping
-        posY -= transY;
-        
-        // move back to te top left corner
-        posX = posX + widthHalf;
-        posY = posY + heightHalf;
-        
-        // during the process use NN Interpolation
-        int nnX = (int) (posX + 0.5);
-        int nnY = (int) (posY + 0.5);
-        
-        // assign value from original image if inside image boundaries
-        if (nnX >= 0 && nnY >= 0 && width > nnX && height > nnY) {
-          resultImg[x][y] = inImg[nnX][nnY];
-        }
-        
-      }
-    }
-    
-    return resultImg;
-  }
   
   public int setup(String arg, ImagePlus imp) {
     if (arg.equals("about")) {
@@ -68,6 +27,7 @@ public class LuisaRegister_ implements PlugInFilter {
         
       }
     }
+    
     return SSEsum;
   }
   
@@ -82,12 +42,12 @@ public class LuisaRegister_ implements PlugInFilter {
     double transY = 10;
     double rotAngle = 1.00;
     
-    int[][] transformedImg = transformImage(inDataArrInt, width, height, transX, transY, rotAngle);
+    int[][] transformedImg = SBVHelpers.transformImage(inDataArrInt, width, height, transX, transY, rotAngle, true);
+    ImageJUtility.showNewImage(transformedImg, width, height, "transformed");
     
     // TOT get SSE metric
     double initError = getSSEerrorMetric(inDataArrInt, transformedImg, width, height);
     
-    ImageJUtility.showNewImage(transformedImg, width, height, "transformed");
     double bestTx = 0;
     double bestTy = 0;
     double bestRot = 0;
@@ -99,11 +59,11 @@ public class LuisaRegister_ implements PlugInFilter {
     
     double stepWidthTranslation = 2.0;
     double stepWidthRotation = 2.0;
-  
+    
     int searchRad = 10;
     double scalePerRun = 0.9;
     int numOfOptimizationRuns = 10;
-    int[][] correctedImg = new int[0][0];
+    int[][] correctedImg = null;
     
     for (int n = 0; n < numOfOptimizationRuns; n++) {
       // search from -20 to +20, namely -20, -18,...
@@ -114,40 +74,36 @@ public class LuisaRegister_ implements PlugInFilter {
             double currTy = actMidTy + yIdx * stepWidthTranslation;
             double currRot = actMidRot + rotIdx * stepWidthRotation;
             
-            correctedImg = SBVHelpers.transformImage(transformedImg, width, height, currTx, currTy, currRot);
+            correctedImg = SBVHelpers.transformImage(transformedImg, width, height, currTx, currTy, currRot, false);
             double currError = getSSEerrorMetric(inDataArrInt, correctedImg, width, height);
             
-            if (currError > bestSSE) {
+            if (currError < bestSSE) {
               bestSSE = currError;
               bestTx = currTx;
               bestTy = currTy;
               bestRot = currRot;
-              IJ.log("new best SSE=" + bestSSE);
+              // IJ.log("new best SSE=" + bestSSE);
             }
           }
         }
       }
-  
+      
       stepWidthTranslation *= scalePerRun;
       stepWidthRotation *= scalePerRun;
       
       actMidTx = bestTx;
       actMidTy = bestTy;
       actMidRot = bestRot;
-      
     }
-    // TODO use BLI for final image
-    //int[][] bestResImg = transformImage(transformedImg, width, height, bestTx, bestTy, bestRot);
-    //int[][] bestResImg = SBVHelpers.transformImage(transformedImg, width, height, bestTx, bestTy, bestRot);
     
-    int[][] bestResImg = new int[width][height];
-    for (int x = 0; x < width; x++) {
-      for (int y = 0; y < height; y++) {
-        bestResImg[x][y] = SBVHelpers.getBilinearInterpolatedValue(correctedImg, x, y, width, height);
-      }
+    // use BLI for final image
+    if (correctedImg != null) {
+      int[][] bestResImgData = SBVHelpers.transformImage(transformedImg, width, height, bestTx, bestTy, bestRot, true);
+      ImageJUtility.showNewImage(bestResImgData, width, height, "registered SSE = " + bestSSE);
+      new Image(inDataArrInt, width, height).calculation(new Image(bestResImgData, width, height)).difference().show();
+    } else {
+      IJ.log("Could not find any solution");
     }
-  
-    ImageJUtility.showNewImage(bestResImg, width, height, "registered SSE = " + bestSSE);
   } // run
   
   void showAbout() {
