@@ -15,22 +15,25 @@ public final class Registration {
   }
   
   private final MatchMetric matchMetric;
+  private final int searchRadiusTranslation;
+  private final int searchRadiusRotation;
   private final double stepWidthTranslation;
   private final double stepWidthRotation;
-  private final int searchRadius;
   private final int optimizationRuns;
   private final double scalePerRun;
   
   private Registration(final MatchMetric matchMetric,
+                       final int searchRadiusTranslation,
+                       final int searchRadiusRotation,
                        final double stepWidthTranslation,
                        final double stepWidthRotation,
-                       final int searchRadius,
                        final int optimizationRuns,
                        final double scalePerRun) {
     if (matchMetric == null
         || stepWidthTranslation <= 0
         || stepWidthRotation <= 0
-        || searchRadius <= 0
+        || searchRadiusTranslation <= 0
+        || searchRadiusRotation <= 0
         || optimizationRuns <= 0
         || scalePerRun <= 0
         || scalePerRun >= 1) {
@@ -38,9 +41,10 @@ public final class Registration {
     }
     
     this.matchMetric = matchMetric;
+    this.searchRadiusTranslation = searchRadiusTranslation;
+    this.searchRadiusRotation = searchRadiusRotation;
     this.stepWidthTranslation = stepWidthTranslation;
     this.stepWidthRotation = stepWidthRotation;
-    this.searchRadius = searchRadius;
     this.optimizationRuns = optimizationRuns;
     this.scalePerRun = scalePerRun;
   }
@@ -67,16 +71,16 @@ public final class Registration {
     double currMidRot = 0;
     
     for (int run = 0; run < optimizationRuns; run++) {
-      final ExecutorService threadPool = Utility.threadPool();
+      ExecutorService threadPool = Utility.threadPool();
       final Deque<MatchWorker> matchWorkers = new LinkedList<>();
       final MatchWorker.Builder matchWorkerBuilder = MatchWorker.create()
           .withImage(image)
           .withTransformedImage(transformedImage)
           .withMatchMetric(matchMetric);
-      
-      for (int xIdx = -searchRadius; xIdx < searchRadius; xIdx++) {
-        for (int yIdx = -searchRadius; yIdx < searchRadius; yIdx++) {
-          for (int rotIdx = -searchRadius; rotIdx < searchRadius; rotIdx++) {
+  
+      for (int xIdx = -searchRadiusTranslation; xIdx < searchRadiusTranslation; xIdx++) {
+        for (int yIdx = -searchRadiusTranslation; yIdx < searchRadiusTranslation; yIdx++) {
+          for (int rotIdx = -searchRadiusRotation; rotIdx < searchRadiusRotation; rotIdx++) {
             final double currTx = currMidTx + xIdx * stepWidthTranslation;
             final double currTy = currMidTy + yIdx * stepWidthTranslation;
             final double currRot = currMidRot + rotIdx * stepWidthRotation;
@@ -142,9 +146,10 @@ public final class Registration {
   public static class Builder {
   
     private MatchMetric matchMetric;
+    private int searchRadiusTranslation;
+    private int searchRadiusRotation;
     private double stepWidthTranslation;
     private double stepWidthRotation;
-    private int searchRadius;
     private int optimizationRuns;
     private double scalePerRun;
     
@@ -156,6 +161,16 @@ public final class Registration {
       this.matchMetric = matchMetric;
       return this;
     }
+  
+    public Builder searchRadiusTranslation(final int searchRadiusTranslation) {
+      this.searchRadiusTranslation = searchRadiusTranslation;
+      return this;
+    }
+  
+    public Builder searchRadiusRotation(final int searchRadiusRotation) {
+      this.searchRadiusRotation = searchRadiusRotation;
+      return this;
+    }
     
     public Builder stepWidthTranslation(final double stepWidthTranslation) {
       this.stepWidthTranslation = stepWidthTranslation;
@@ -164,11 +179,6 @@ public final class Registration {
     
     public Builder stepWidthRotation(final double stepWidthRotation) {
       this.stepWidthRotation = stepWidthRotation;
-      return this;
-    }
-    
-    public Builder searchRadius(final int searchRadius) {
-      this.searchRadius = searchRadius;
       return this;
     }
     
@@ -184,9 +194,10 @@ public final class Registration {
     
     public Registration build() {
       return new Registration(matchMetric,
+          searchRadiusTranslation,
+          searchRadiusRotation,
           stepWidthTranslation,
           stepWidthRotation,
-          searchRadius,
           optimizationRuns,
           scalePerRun);
     }

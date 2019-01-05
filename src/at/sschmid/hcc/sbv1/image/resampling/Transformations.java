@@ -82,16 +82,29 @@ public final class Transformations {
   }
   
   public static class Rotation implements TransformationItem {
+  
+    private static final int FULL_ROTATION_DEGREES = 360;
     
     public final double radians;
-    
-    private Rotation(final double degrees) {
+  
+    private Rotation(double degrees) {
+      if (degrees > FULL_ROTATION_DEGREES) {
+        do {
+          degrees -= FULL_ROTATION_DEGREES;
+        } while (degrees > FULL_ROTATION_DEGREES);
+      
+      } else if (degrees < -FULL_ROTATION_DEGREES) {
+        do {
+          degrees += FULL_ROTATION_DEGREES;
+        } while (degrees < -FULL_ROTATION_DEGREES);
+      }
+      
       this.radians = Math.toRadians(degrees);
     }
     
     @Override
     public String toString() {
-      return String.format("Rotation %.1f°", Math.toDegrees(radians));
+      return String.format("Rotation %.3f°", Math.toDegrees(radians));
     }
     
   }

@@ -15,16 +15,17 @@ import java.util.Arrays;
 public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
   
   private static final boolean DEFAULT_SPLIT_IMAGE = true;
-  private static final double DEFAULT_SEARCH_RADIUS = 10;
-  private static final double DEFAULT_SCALE_PER_RUN = 0.9d;
-  private static final double DEFAULT_STEP_WIDTH_TRANS = 2d;
-  private static final double DEFAULT_STEP_WIDTH_ROT = DEFAULT_STEP_WIDTH_TRANS;
-  private static final double DEFAULT_TRANS_X = 3.1416;
-  private static final double DEFAULT_TRANS_Y = -7.9999;
-  private static final double DEFAULT_ROTATION = 11.5;
+  private static final double DEFAULT_TRANS_X = 15;
+  private static final double DEFAULT_TRANS_Y = -15;
+  private static final double DEFAULT_ROTATION = 10;
   private static final boolean DEFAULT_ROTATE_FIRST = false;
+  private static final MatchMetricType DEFAULT_METRIC = MatchMetricType.MI;
+  private static final double DEFAULT_SEARCH_RADIUS_TRANS = 10;
+  private static final double DEFAULT_SEARCH_RADIUS_ROT = DEFAULT_SEARCH_RADIUS_TRANS;
+  private static final double DEFAULT_STEP_WIDTH_TRANS = 10d;
+  private static final double DEFAULT_STEP_WIDTH_ROT = DEFAULT_STEP_WIDTH_TRANS;
   private static final int DEFAULT_OPTIMIZATION_RUNS = 5;
-  private static final MatchMetricType DEFAULT_METRIC = MatchMetricType.CM;
+  private static final double DEFAULT_SCALE_PER_RUN = 0.9d;
   
   @Override
   public void process(final Image image) {
@@ -59,7 +60,8 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     dialog.addChoice("Match metric",
         Arrays.stream(MatchMetricType.values()).map(Enum::toString).toArray(String[]::new),
         DEFAULT_METRIC.name);
-    dialog.addNumericField("Search radius", DEFAULT_SEARCH_RADIUS, 0);
+    dialog.addNumericField("Search radius (translation)", DEFAULT_SEARCH_RADIUS_TRANS, 0);
+    dialog.addNumericField("Search radius (rotation)", DEFAULT_SEARCH_RADIUS_ROT, 0);
     dialog.addNumericField("Step width (translation)", DEFAULT_STEP_WIDTH_TRANS, 3);
     dialog.addNumericField("Step width (rotation)", DEFAULT_STEP_WIDTH_ROT, 3);
     dialog.addNumericField("Optimization runs", DEFAULT_OPTIMIZATION_RUNS, 0);
@@ -74,6 +76,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
         dialog.getNextNumber(),
         dialog.getNextBoolean(),
         MatchMetricType.values()[dialog.getNextChoiceIndex()],
+        (int) dialog.getNextNumber(),
         (int) dialog.getNextNumber(),
         dialog.getNextNumber(),
         dialog.getNextNumber(),
@@ -92,7 +95,8 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
         .errorMetric(matchMetric)
         .stepWidthTranslation(input.stepWidthTranslation)
         .stepWidthRotation(input.stepWidthRotation)
-        .searchRadius(input.searchRadius)
+        .searchRadiusTranslation(input.searchRadiusTranslation)
+        .searchRadiusRotation(input.searchRadiusRotation)
         .optimizationRuns(input.optimizationRuns)
         .scalePerRun(input.scalePerRun)
         .build();
@@ -130,7 +134,8 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     private final boolean rotateFirst;
   
     private final MatchMetricType matchMetricType;
-    private final int searchRadius;
+    private final int searchRadiusTranslation;
+    private final int searchRadiusRotation;
     private final double stepWidthTranslation;
     private final double stepWidthRotation;
     private final int optimizationRuns;
@@ -142,7 +147,8 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
           final double rotation,
           final boolean rotateFirst,
           final MatchMetricType matchMetricType,
-          final int searchRadius,
+          final int searchRadiusTranslation,
+          final int searchRadiusRotation,
           final double stepWidthTranslation,
           final double stepWidthRotation,
           final int optimizationRuns,
@@ -153,7 +159,8 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
       this.rotation = rotation;
       this.rotateFirst = rotateFirst;
       this.matchMetricType = matchMetricType;
-      this.searchRadius = searchRadius;
+      this.searchRadiusTranslation = searchRadiusTranslation;
+      this.searchRadiusRotation = searchRadiusRotation;
       this.stepWidthTranslation = stepWidthTranslation;
       this.stepWidthRotation = stepWidthRotation;
       this.optimizationRuns = optimizationRuns;
@@ -179,8 +186,10 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
   
       return result.append(",\n  Registration:\n   matchMetricType=")
           .append(matchMetricType)
-          .append(",\n   searchRadius=")
-          .append(searchRadius)
+          .append(",\n   searchRadiusTranslation=")
+          .append(searchRadiusTranslation)
+          .append(",\n   searchRadiusRotation=")
+          .append(searchRadiusRotation)
           .append(",\n   stepWidthTranslation=")
           .append(stepWidthTranslation)
           .append(",\n   stepWidthRotation=")

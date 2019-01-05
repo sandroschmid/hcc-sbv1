@@ -22,6 +22,7 @@ public final class DistanceMap {
       initContour();
       topLeftToBottomRight();
       bottomRightToTopLeft();
+//      cleanup();
     }
     
     return distanceMap;
@@ -133,5 +134,34 @@ public final class DistanceMap {
       }
     }
   }
+
+//  private void cleanup() {
+//    Double maxDistance = null;
+//    for (int x = 0; x < image.width; x++) {
+//      for (int y = 0; y < image.height; y++) {
+//        if (Double.isInfinite(distanceMap[x][y])) {
+//          if (maxDistance == null) {
+//            maxDistance = maxDistance();
+//          }
+//
+//          distanceMap[x][y] = maxDistance;
+//        }
+//      }
+//    }
+//  }
+//
+//  private double maxDistance() {
+//    double maxDistance = 0;
+//    for (int x = 0; x < image.width; x++) {
+//      for (int y = 0; y < image.height; y++) {
+//        final double distance = distanceMap[x][y];
+//        if (distance > maxDistance) {
+//          maxDistance = distance;
+//        }
+//      }
+//    }
+//
+//    return maxDistance;
+//  }
   
 }
