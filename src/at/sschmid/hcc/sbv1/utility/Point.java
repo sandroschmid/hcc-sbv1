@@ -10,4 +10,13 @@ public final class Point {
     this.y = y;
   }
   
+  public Point add(final Point other) {
+    return new Point(x + other.x, y + other.y);
+  }
+  
+  @Override
+  public String toString() {
+    return String.format("[%d;%d]", x, y);
+  }
+  
 }

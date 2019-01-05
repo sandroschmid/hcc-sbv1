@@ -2,7 +2,6 @@ import at.sschmid.hcc.sbv1.image.Histogram;
 import at.sschmid.hcc.sbv1.image.Image;
 import at.sschmid.hcc.sbv1.image.OptimalThreshold;
 import at.sschmid.hcc.sbv1.image.imagej.AbstractUserInputPlugIn;
-import at.sschmid.hcc.sbv1.image.segmentation.BinaryThreshold;
 import ij.IJ;
 import ij.gui.GenericDialog;
 
@@ -11,47 +10,79 @@ public final class OptimalThreshold_ extends AbstractUserInputPlugIn<OptimalThre
   @Override
   protected void process(final Image image) {
     final OptimalThreshold optimalThreshold = image.optimalThreshold();
-    final int optimalThresholdGlobal = optimalThreshold.calculate();
-    
-    final Image objectsMask = image.binary(new BinaryThreshold(optimalThresholdGlobal, 0, image.maxColor));
-    final Image objects = image.calculation(objectsMask).and();
-    final Image diff = image.calculation(objects).difference();
-    
-    addResult(objectsMask, String.format("%s - detected objects (mask)", pluginName));
-    addResult(objects, String.format("%s - detected objects", pluginName));
-    addResult(diff, String.format("%s - detected objects (diff)", pluginName));
-    
-    final Histogram diffHistogram = diff.histogram();
-    IJ.log(String.format("Diff minColor=%d, maxColor=%d", diffHistogram.getMinColor(), diffHistogram.getMaxColor()));
-    
-    IJ.log(String.format("Optimal Threshold: %d", optimalThresholdGlobal));
+    if ("All".equals(input.whichOne) || "Global".equals(input.whichOne)) {
+      global(image, optimalThreshold);
+    }
+  
+    if ("All".equals(input.whichOne) || "Local".equals(input.whichOne)) {
+      local(image, optimalThreshold);
+    }
   }
   
   @Override
   protected void setupDialog(final GenericDialog dialog) {
-    final String[] sizeChoices = new String[] { "9", "21", "51", "101" };
-    dialog.addChoice("Segment width", sizeChoices, sizeChoices[0]);
-    dialog.addChoice("Segment height", sizeChoices, sizeChoices[0]);
+    dialog.addChoice("Which?", new String[] { "All", "Global", "Local" }, "Local");
+    final String[] sizeChoices = new String[] { "9", "21", "51", "101", "201" };
+    final String defaultSizeChoice = "101";
+    dialog.addChoice("Segment width", sizeChoices, defaultSizeChoice);
+    dialog.addChoice("Segment height", sizeChoices, defaultSizeChoice);
   }
   
   @Override
   protected Input getInput(final GenericDialog dialog) {
-    return new Input(Integer.valueOf(dialog.getNextChoice()), Integer.valueOf(dialog.getNextChoice()));
+    return new Input(dialog.getNextChoice(),
+        Integer.valueOf(dialog.getNextChoice()),
+        Integer.valueOf(dialog.getNextChoice()));
+  }
+  
+  private void global(final Image image, final OptimalThreshold optimalThreshold) {
+    final int globalThreshold = optimalThreshold.get();
+    final Image globalMask = image.optimalThreshold().globalMask();
+    final Image globalObjects = image.calculation(globalMask).and();
+    final Image globalDiff = image.calculation(globalObjects).difference();
+    
+    addResult(globalMask, String.format("%s - global mask", pluginName));
+    addResult(globalObjects, String.format("%s - globally detected objects", pluginName));
+    addResult(globalDiff, String.format("%s - globally detected objects (diff)", pluginName));
+    
+    IJ.log(String.format("Global optimal threshold: %d", globalThreshold));
+    final Histogram diffHistogram = globalDiff.histogram();
+    IJ.log(String.format("Global diff - minColor=%d, maxColor=%d",
+        diffHistogram.getMinColor(),
+        diffHistogram.getMaxColor()));
+  }
+  
+  private void local(final Image image, final OptimalThreshold optimalThreshold) {
+    final Image localMask = optimalThreshold.localMask(input.segmentWidth, input.segmentHeight);
+    final Image localObjects = image.calculation(localMask).and();
+    final Image localDiff = image.calculation(localObjects).difference();
+    
+    addResult(localMask, String.format("%s - local mask", pluginName));
+    addResult(localObjects, String.format("%s - locally detected objects", pluginName));
+    addResult(localDiff, String.format("%s - locally detected objects (diff)", pluginName));
+    
+    final Histogram diffHistogram = localDiff.histogram();
+    IJ.log(String.format("Local diff - minColor=%d, maxColor=%d",
+        diffHistogram.getMinColor(),
+        diffHistogram.getMaxColor()));
   }
   
   static final class Input {
-    
+  
+    private final String whichOne;
     private final int segmentWidth;
     private final int segmentHeight;
-    
-    private Input(final int segmentWidth, final int segmentHeight) {
+  
+    private Input(final String whichOne, final int segmentWidth, final int segmentHeight) {
+      this.whichOne = whichOne;
       this.segmentWidth = segmentWidth;
       this.segmentHeight = segmentHeight;
     }
     
     @Override
     public String toString() {
-      return String.format("Optimal Threshold {\n  segmentWidth=%d,\n  segmentHeight=%d\n}",
+      return String.format("Optimal Threshold {\n  whichOne=%s,\n  segmentWidth=%d,\n  segmentHeight=%d\n}",
+          whichOne,
           segmentWidth,
           segmentHeight);
     }

@@ -1,6 +1,7 @@
 package at.sschmid.hcc.sbv1.image;
 
 import at.sschmid.hcc.sbv1.utility.Point;
+import ij.IJ;
 
 public final class Segment implements ImageGenerator {
   
@@ -8,76 +9,37 @@ public final class Segment implements ImageGenerator {
     return new Builder(image);
   }
   
+  public static int radius(final int size) {
+    return (size - 1) / 2;
+  }
+  
+  private final Image fullImage;
+  private final Point origin;
   private final Point center;
   private final int width;
   private final int height;
+  private final int xRadius;
+  private final int yRadius;
   private final Image segmentImage;
   
   private Integer optimalThreshold;
   
-  public Segment(final Image fullImage, final Point center, final int width, final int height) {
-    if (width % 2 == 0 || height % 2 == 0) {
-      throw new IllegalArgumentException("Width and height for a segment need to be uneven numbers");
-    }
+  private Segment(final Image fullImage, final Point origin, final int width, final int height) {
+    this.fullImage = fullImage;
+    this.origin = origin;
+    this.width = width;
+    this.height = height;
+    this.xRadius = radius(width);
+    this.yRadius = radius(height);
     
-    this.center = center;
+    this.center = findCenter(fullImage, xRadius, yRadius);
     
-    final int xRadius = (width - 1) / 2;
-    final int yRadius = (height - 1) / 2;
-    
-    int actualWidth = width;
-    int actualHeight = height;
-    int xStart = -xRadius;
-    int xEnd = xRadius;
-    int yStart = -yRadius;
-    int yEnd = yRadius;
-    
-    if (center.x - xRadius < 0) {
-      final int overflow = Math.abs(center.x - xRadius);
-      actualWidth -= overflow;
-      xStart += overflow;
-    }
-    
-    if (center.x + xRadius >= fullImage.width) {
-      final int overflow = fullImage.width - (center.x + xRadius) + 1;
-      actualWidth -= overflow;
-      xEnd -= overflow;
-    }
-    
-    if (center.y - yRadius < 0) {
-      final int overflow = Math.abs(center.y - yRadius);
-      actualHeight -= overflow;
-      yStart += overflow;
-    }
-    
-    if (center.y + yRadius >= fullImage.height) {
-      final int overflow = fullImage.height - (center.y + yRadius) + 1;
-      actualHeight -= overflow;
-      yEnd -= overflow;
-    }
-    
-    this.width = actualWidth;
-    this.height = actualHeight;
-    
-    this.segmentImage = new Image(String.format("Segment of %s", fullImage.getName()), actualWidth, actualHeight);
-    for (int xOffset = xStart; xOffset <= xEnd; xOffset++) {
-      for (int yOffset = yStart; yOffset <= yEnd; yOffset++) {
-        final int sx = xOffset + Math.abs(xStart);
-        final int sy = yOffset + Math.abs(yStart);
-        final int fix = center.x + xOffset;
-        final int fiy = center.y + yOffset;
-        
-        if (sx >= 0
-            && sx < actualWidth
-            && sy >= 0
-            && sy < actualHeight
-            && fix >= 0
-            && fix < fullImage.width
-            && fiy >= 0
-            && fiy < fullImage.height) {
-          final int value = fullImage.data[fix][fiy];
-          segmentImage.data[sx][sy] = value;
-        }
+    this.segmentImage = new Image(String.format("Segment of %s", fullImage.getName()), width, height);
+    for (int xOffset = -xRadius; xOffset <= xRadius; xOffset++) {
+      final int sx = xOffset + xRadius;
+      final int fix = center.x + xOffset;
+      for (int yOffset = -yRadius; yOffset <= yRadius; yOffset++) {
+        segmentImage.data[sx][yOffset + yRadius] = fullImage.data[fix][center.y + yOffset];
       }
     }
   }
@@ -87,9 +49,27 @@ public final class Segment implements ImageGenerator {
     return segmentImage;
   }
   
+  public Image mask() {
+    final int left = center.x - xRadius;
+    final int right = center.x + xRadius;
+    final int top = center.y - yRadius;
+    final int bottom = center.y + yRadius;
+    
+    final Image mask = new Image(fullImage.width, fullImage.height);
+    for (int x = left; x < right; x++) {
+      for (int y = top; y < bottom; y++) {
+        mask.data[x][y] = fullImage.maxColor;
+      }
+    }
+    
+    return mask;
+  }
+  
   public int getOptimalThreshold() {
     if (optimalThreshold == null) {
-      optimalThreshold = segmentImage.histogram().optimalThreshold().calculate();
+      final OptimalThreshold optimalThreshold = segmentImage.histogram().optimalThreshold();
+      IJ.log(String.format("optimal threshold for segment %s: %d", toString(), optimalThreshold.get()));
+      this.optimalThreshold = optimalThreshold.get();
     }
     
     return optimalThreshold;
@@ -97,41 +77,77 @@ public final class Segment implements ImageGenerator {
   
   @Override
   public String toString() {
-    return String.format("Segment {\n  center=%s,\n  width=%d,\n  height=%d,\n  optimalThreshold=%d\n}",
+    return String.format("Segment {\n  origin=%s,\n  center=%s\n  width=%d,\n  height=%d,\n  optimalThreshold=%d\n}",
+        origin,
         center,
         width,
         height,
         optimalThreshold);
   }
   
-  public static final class Builder {
+  private Point findCenter(final Image fullImage, final int xRadius, final int yRadius) {
+    int centerX = origin.x;
+    int centerY = origin.y;
     
-    private final Image image;
-    private Point center;
-    private int width;
-    private int height;
-    
-    public Builder(final Image image) {
-      this.image = image;
+    if (origin.x - xRadius < 0) {
+      centerX += Math.abs(origin.x - xRadius);
+    } else if (origin.x + xRadius >= fullImage.width) {
+      centerX -= origin.x + xRadius - fullImage.width + 1;
     }
     
-    public Builder center(final Point position) {
-      this.center = position;
+    if (origin.y - yRadius < 0) {
+      centerY += Math.abs(origin.y - yRadius);
+    } else if (origin.y + yRadius >= fullImage.height) {
+      centerY -= origin.y + yRadius - fullImage.height + 1;
+    }
+    
+    return new Point(centerX, centerY);
+  }
+  
+  public static final class Builder {
+  
+    private final Image fullImage;
+    private Point origin;
+    private int width;
+    private int height;
+  
+    public Builder(final Image fullImage) {
+      this.fullImage = fullImage;
+    }
+  
+    public Builder origin(final Point origin) {
+      this.origin = origin;
       return this;
     }
     
     public Builder width(final int width) {
+      if (width > fullImage.width) {
+        throw new IllegalArgumentException("Segments need to be smaller than the image from which they are created");
+      }
+  
+      if (width % 2 == 0) {
+        throw new IllegalArgumentException("Width for a segment need to be an uneven number");
+      }
+  
       this.width = width;
       return this;
     }
-    
+  
     public Builder height(final int height) {
+      if (height > fullImage.height) {
+        throw new IllegalArgumentException("Segments need to be smaller than the image from which they are created");
+      }
+    
+      if (height % 2 == 0) {
+        throw new IllegalArgumentException("Height for a segment need to be an uneven number");
+      }
+    
       this.height = height;
       return this;
     }
     
     public Segment build() {
-      return new Segment(image, center, width, height);
+      return new Segment(fullImage, origin, width, height);
     }
     
   }

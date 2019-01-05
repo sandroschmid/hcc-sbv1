@@ -4,6 +4,7 @@ import at.sschmid.hcc.sbv1.image.Image;
 import at.sschmid.hcc.sbv1.utility.Point;
 import ij.ImagePlus;
 import ij.gui.PointRoi;
+import ij.gui.Roi;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 
@@ -160,11 +161,16 @@ public final class ImageJUtility {
   }
   
   public static Collection<Point> getSeedPoints(final ImagePlus imagePlus) {
-    final PointRoi roi = (PointRoi) imagePlus.getRoi();
-    final Rectangle rect = roi.getBounds();
-    final int nPoints = roi.getCount(0);
-    final int[] xCoords = roi.getXCoordinates();
-    final int[] yCoords = roi.getYCoordinates();
+    final Roi roi = imagePlus.getRoi();
+    final PointRoi pointRow = roi instanceof PointRoi ? (PointRoi) roi : null;
+    if (pointRow == null) {
+      return new LinkedList<>();
+    }
+  
+    final Rectangle rect = pointRow.getBounds();
+    final int nPoints = pointRow.getCount(0);
+    final int[] xCoords = pointRow.getXCoordinates();
+    final int[] yCoords = pointRow.getYCoordinates();
   
     final Collection<Point> seeds = new LinkedList<>();
     for (int i = 0; i < nPoints; i++) {

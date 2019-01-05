@@ -6,28 +6,28 @@ import at.sschmid.hcc.sbv1.utility.Point;
 import ij.gui.GenericDialog;
 
 import java.util.Collection;
+import java.util.List;
 
 public final class Segment_ extends AbstractUserInputPlugIn<Segment_.Input> {
-  
-  @Override
-  protected int getSetupMask() {
-    return super.getSetupMask() + ROI_REQUIRED;
-  }
+
+//  @Override
+//  protected int getSetupMask() {
+//    return super.getSetupMask() + ROI_REQUIRED;
+//  }
   
   @Override
   protected void process(final Image image) {
     final Collection<Point> seeds = ImageJUtility.getSeedPoints(imagePlus);
-//    final Image result = new Image(image.width, image.height);
-    final Segment.Builder segmentBuilder = image.segment().width(input.segmentWidth).height(input.segmentHeight);
-    for (final Point seed : seeds) {
-      final Segment segment = segmentBuilder.center(seed).build();
-      addResult(segment);
+    if (seeds.isEmpty()) {
+      automatic(image);
+    } else {
+      userSelection(image, seeds);
     }
   }
   
   @Override
   protected void setupDialog(final GenericDialog dialog) {
-    final String[] sizeChoices = new String[] { "51", "101", "201" };
+    final String[] sizeChoices = new String[] { "9", "21", "51", "101", "201" };
     dialog.addChoice("Segment width", sizeChoices, sizeChoices[sizeChoices.length / 2]);
     dialog.addChoice("Segment height", sizeChoices, sizeChoices[sizeChoices.length / 2]);
   }
@@ -35,6 +35,30 @@ public final class Segment_ extends AbstractUserInputPlugIn<Segment_.Input> {
   @Override
   protected Input getInput(final GenericDialog dialog) {
     return new Input(Integer.valueOf(dialog.getNextChoice()), Integer.valueOf(dialog.getNextChoice()));
+  }
+  
+  private void automatic(final Image image) {
+    final List<Segment> otLocal = image.getSegments(input.segmentWidth, input.segmentHeight);
+    Image maskWithAllSegments = new Image(image.width, image.height);
+    for (final Segment segment : otLocal) {
+      maskWithAllSegments = maskWithAllSegments.calculation(segment.mask()).or();
+    }
+    
+    addResult(maskWithAllSegments, String.format("%s - Mask with all segments", pluginName));
+    addResult(image.calculation(maskWithAllSegments).and(), String.format("%s - All segments", pluginName));
+  }
+  
+  private void userSelection(final Image image, final Collection<Point> seeds) {
+    final Segment.Builder segmentBuilder = image.segment().width(input.segmentWidth).height(input.segmentHeight);
+    Image maskWithAllSegments = new Image(image.width, image.height);
+    for (final Point seed : seeds) {
+      final Segment segment = segmentBuilder.origin(seed).build();
+      addResult(segment, String.format("Segment with origin=%s", seed));
+      maskWithAllSegments = maskWithAllSegments.calculation(segment.mask()).or();
+    }
+    
+    addResult(maskWithAllSegments, String.format("%s - Mask with all segments", pluginName));
+    addResult(image.calculation(maskWithAllSegments).and(), String.format("%s - All segments", pluginName));
   }
   
   static final class Input {

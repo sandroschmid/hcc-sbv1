@@ -7,7 +7,11 @@ import at.sschmid.hcc.sbv1.image.resampling.Interpolation;
 import at.sschmid.hcc.sbv1.image.resampling.Transformation;
 import at.sschmid.hcc.sbv1.image.segmentation.BinaryThreshold;
 import at.sschmid.hcc.sbv1.image.segmentation.Segmentation;
+import at.sschmid.hcc.sbv1.utility.Point;
 import at.sschmid.hcc.sbv1.utility.Utility;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class Image {
   
@@ -146,6 +150,20 @@ public final class Image {
   
   public Segment.Builder segment() {
     return Segment.create(this);
+  }
+  
+  public List<Segment> getSegments(final int segmentWidth, final int segmentHeight) {
+    final List<Segment> segments = new ArrayList<>();
+    final int xRadius = Segment.radius(segmentWidth);
+    final int yRadius = Segment.radius(segmentHeight);
+    final Segment.Builder segmentBuilder = segment().width(segmentWidth).height(segmentHeight);
+    for (int x = xRadius; x < width; x += segmentWidth) {
+      for (int y = yRadius; y < height; y += segmentHeight) {
+        segments.add(segmentBuilder.origin(new Point(x, y)).build());
+      }
+    }
+    
+    return segments;
   }
   
   public boolean sizeEqualsTo(final Image other) {

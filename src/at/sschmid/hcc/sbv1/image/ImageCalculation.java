@@ -22,6 +22,10 @@ public final class ImageCalculation {
     return calculate("AND", (c1, c2) -> c2 > 0 ? c1 : 0);
   }
   
+  public Image or() {
+    return calculate("OR", (c1, c2) -> c1 > 0 ? c1 : (c2 > 0 ? c2 : 0));
+  }
+  
   private Image calculate(final String operationName, final Operation operation) {
     final Image result = new Image(getImageName(operationName), image1.width, image1.height);
     for (int x = 0; x < image1.width; x++) {
