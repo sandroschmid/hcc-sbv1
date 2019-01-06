@@ -86,10 +86,10 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
   
   private void registration(final Image image1, final Image image2) {
     final MatchMetric matchMetric = MatchMetric.create(input.matchMetricType, image1, image2);
-    final double initialError = matchMetric.getMatch(image1, image2);
-    IJ.log(String.format("Initial match = %.2f", initialError));
+    final double initialMatch = matchMetric.getMatch(image1, image2);
+    IJ.log(String.format("Initial match = %.2f", initialMatch));
     image1.show(String.format("%s - image 1", pluginName));
-    image2.show(String.format("%s - image 2 (e=%.2f)", pluginName, initialError));
+    image2.show(String.format("%s - image 2 (e=%.2f)", pluginName, initialMatch));
     
     final Registration registration = Registration.create()
         .errorMetric(matchMetric)
@@ -119,8 +119,8 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     addResult(registeredImage, String.format("%s - registered image (e=%.2f)", pluginName, bestMatch));
     addResult(image1.calculation(registeredImage).difference(), String.format("%s - difference", pluginName));
   
-    final double diff = Math.abs(bestMatch - initialError);
-    final double diffRelative = diff / initialError * 100;
+    final double diff = Math.abs(bestMatch - initialMatch);
+    final double diffRelative = diff / initialMatch * 100;
     IJ.log(String.format("Best match = %.2f (difference = %.2f = %.2f%%)", bestMatch, diff, diffRelative));
     IJ.log(String.format("Best transformations: %s", bestTransformations));
     IJ.log(String.format("Optimization runs: %d", registration.getOptimizationRuns()));

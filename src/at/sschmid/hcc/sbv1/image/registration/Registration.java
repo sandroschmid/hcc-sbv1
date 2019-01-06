@@ -3,6 +3,7 @@ package at.sschmid.hcc.sbv1.image.registration;
 import at.sschmid.hcc.sbv1.image.Image;
 import at.sschmid.hcc.sbv1.image.resampling.Transformations;
 import at.sschmid.hcc.sbv1.utility.Utility;
+import ij.IJ;
 
 import java.util.Deque;
 import java.util.LinkedList;
@@ -68,8 +69,9 @@ public final class Registration {
     double bestTx = 0;
     double bestTy = 0;
     double bestRot = 0;
-    double bestMatch = matchMetric.getMatch(image, transformedImage);
+    double initialMatch = matchMetric.getMatch(image, transformedImage);
     Transformations bestTransformations = null;
+    double bestMatch = initialMatch;
     
     // offsets for further runs
     double currMidTx = 0;
@@ -83,7 +85,7 @@ public final class Registration {
           .withImage(image)
           .withTransformedImage(transformedImage)
           .withMatchMetric(matchMetric);
-  
+    
       for (int xIdx = -searchRadiusTranslation; xIdx < searchRadiusTranslation; xIdx++) {
         for (int yIdx = -searchRadiusTranslation; yIdx < searchRadiusTranslation; yIdx++) {
           for (int rotIdx = -searchRadiusRotation; rotIdx < searchRadiusRotation; rotIdx++) {
@@ -123,20 +125,31 @@ public final class Registration {
           }
         }
       }
-  
+    
       Utility.join(threadPool);
-  
+    
+      double newBestMatch = bestMatch;
       for (final MatchWorker matchWorker : matchWorkers) {
         final double match = matchWorker.getMatch();
-        if (matchMetric.isBetter(match, bestMatch)) {
-          bestMatch = match;
+        if (matchMetric.isBetter(match, newBestMatch)) {
+          newBestMatch = match;
           bestTx = matchWorker.getTx();
           bestTy = matchWorker.getTy();
           bestRot = matchWorker.getRot();
           bestTransformations = matchWorker.getTransformations();
         }
       }
-  
+    
+      IJ.log(String.format("Run #%d: %.5f (%s%.5f; absolute diff = %s%.5f%%)",
+          optimizationRuns + 1,
+          newBestMatch,
+          newBestMatch - bestMatch >= 0 ? "+" : "-",
+          newBestMatch - bestMatch,
+          newBestMatch - bestMatch >= 0 ? "+" : "-",
+          Math.abs(newBestMatch - initialMatch) / initialMatch * 100));
+    
+      bestMatch = newBestMatch;
+      
       // prepare next run - decrease search area from global search to local search
       stepWidthTranslation *= scalePerRun;
       stepWidthRotation *= scalePerRun;
