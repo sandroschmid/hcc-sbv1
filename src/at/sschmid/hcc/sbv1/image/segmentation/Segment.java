@@ -10,10 +10,6 @@ public final class Segment implements ImageGenerator {
     return new Builder(image);
   }
   
-  public static int radius(final int size) {
-    return (size - 1) / 2;
-  }
-  
   private final Image fullImage;
   private final Point origin;
   private final Point center;
@@ -23,16 +19,13 @@ public final class Segment implements ImageGenerator {
   private final int yRadius;
   private final Image segmentImage;
   
-  private Integer optimalThreshold;
-  
   private Segment(final Image fullImage, final Point origin, final int width, final int height) {
     this.fullImage = fullImage;
     this.origin = origin;
     this.width = width;
     this.height = height;
-    this.xRadius = radius(width);
-    this.yRadius = radius(height);
-    
+    this.xRadius = (width - 1) / 2;
+    this.yRadius = (height - 1) / 2;
     this.center = findCenter(fullImage, xRadius, yRadius);
     
     this.segmentImage = new Image(String.format("Segment of %s", fullImage.getName()), width, height);
@@ -47,14 +40,18 @@ public final class Segment implements ImageGenerator {
   
   @Override
   public Image getResult() {
+    return getSegmentImage();
+  }
+  
+  public Image getSegmentImage() {
     return segmentImage;
   }
   
   public Image mask() {
     final int left = center.x - xRadius;
-    final int right = center.x + xRadius;
+    final int right = center.x + xRadius + 1;
     final int top = center.y - yRadius;
-    final int bottom = center.y + yRadius;
+    final int bottom = center.y + yRadius + 1;
     
     final Image mask = new Image(fullImage.width, fullImage.height);
     for (int x = left; x < right; x++) {
@@ -66,22 +63,13 @@ public final class Segment implements ImageGenerator {
     return mask;
   }
   
-  public int getOptimalThreshold() {
-    if (optimalThreshold == null) {
-      this.optimalThreshold = segmentImage.histogram().optimalThreshold().get();
-    }
-    
-    return optimalThreshold;
-  }
-  
   @Override
   public String toString() {
-    return String.format("Segment {\n  origin=%s,\n  center=%s\n  width=%d,\n  height=%d,\n  optimalThreshold=%d\n}",
+    return String.format("Segment {\n  origin=%s,\n  center=%s\n  width=%d,\n  height=%d\n}",
         origin,
         center,
         width,
-        height,
-        optimalThreshold);
+        height);
   }
   
   private Point findCenter(final Image fullImage, final int xRadius, final int yRadius) {

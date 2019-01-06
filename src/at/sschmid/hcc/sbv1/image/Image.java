@@ -151,11 +151,9 @@ public final class Image {
   
   public List<Segment> getSegments(final int segmentWidth, final int segmentHeight) {
     final List<Segment> segments = new ArrayList<>();
-    final int xRadius = Segment.radius(segmentWidth);
-    final int yRadius = Segment.radius(segmentHeight);
     final Segment.Builder segmentBuilder = segment().width(segmentWidth).height(segmentHeight);
-    for (int x = xRadius; x < width; x += segmentWidth) {
-      for (int y = yRadius; y < height; y += segmentHeight) {
+    for (int x = 0; x < width; x += segmentWidth) {
+      for (int y = 0; y < height; y += segmentHeight) {
         segments.add(segmentBuilder.origin(new Point(x, y)).build());
       }
     }

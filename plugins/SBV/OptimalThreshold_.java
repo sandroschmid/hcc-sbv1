@@ -9,7 +9,7 @@ public final class OptimalThreshold_ extends AbstractUserInputPlugIn<OptimalThre
   
   @Override
   protected void process(final Image image) {
-    final OptimalThreshold optimalThreshold = image.histogram().optimalThreshold();
+    final OptimalThreshold optimalThreshold = image.histogram().optimalThreshold(input.version);
     final boolean isAll = "All".equals(input.whichOne);
     if (isAll || "Global".equals(input.whichOne)) {
       global(image, optimalThreshold);
@@ -22,6 +22,7 @@ public final class OptimalThreshold_ extends AbstractUserInputPlugIn<OptimalThre
   
   @Override
   protected void setupDialog(final GenericDialog dialog) {
+    dialog.addChoice("Version", new String[] { "v1", "v2" }, "v2");
     dialog.addChoice("Which?", new String[] { "All", "Global", "Local" }, "All");
     final String[] sizeChoices = new String[] { "9", "21", "51", "101", "201" };
     final String defaultSizeChoice = "51";
@@ -31,13 +32,14 @@ public final class OptimalThreshold_ extends AbstractUserInputPlugIn<OptimalThre
   
   @Override
   protected Input getInput(final GenericDialog dialog) {
-    return new Input(dialog.getNextChoice(),
+    return new Input(dialog.getNextChoiceIndex() + 1,
+        dialog.getNextChoice(),
         Integer.valueOf(dialog.getNextChoice()),
         Integer.valueOf(dialog.getNextChoice()));
   }
   
   private void global(final Image image, final OptimalThreshold optimalThreshold) {
-    final int globalThreshold = optimalThreshold.get();
+    final int globalThreshold = optimalThreshold.globalValue();
     final Image globalMask = optimalThreshold.globalMask();
     final Image globalObjects = image.calculation(globalMask).and();
     final Image globalDiff = image.calculation(globalObjects).difference();
@@ -70,11 +72,13 @@ public final class OptimalThreshold_ extends AbstractUserInputPlugIn<OptimalThre
   
   static final class Input {
   
+    private final int version;
     private final String whichOne;
     private final int segmentWidth;
     private final int segmentHeight;
   
-    private Input(final String whichOne, final int segmentWidth, final int segmentHeight) {
+    private Input(final int version, final String whichOne, final int segmentWidth, final int segmentHeight) {
+      this.version = version;
       this.whichOne = whichOne;
       this.segmentWidth = segmentWidth;
       this.segmentHeight = segmentHeight;
@@ -82,10 +86,16 @@ public final class OptimalThreshold_ extends AbstractUserInputPlugIn<OptimalThre
     
     @Override
     public String toString() {
-      return String.format("Optimal Threshold {\n  whichOne=%s,\n  segmentWidth=%d,\n  segmentHeight=%d\n}",
-          whichOne,
-          segmentWidth,
-          segmentHeight);
+      final StringBuilder builder = new StringBuilder("Optimal Threshold (v")
+          .append(version)
+          .append(") {\n  whichOne=")
+          .append(whichOne);
+  
+      if ("All".equals(whichOne) || "Local".equals(whichOne)) {
+        builder.append(",\n  segmentWidth=").append(segmentWidth).append(",\n  segmentHeight=").append(segmentHeight);
+      }
+  
+      return builder.append("\n}").toString();
     }
     
   }

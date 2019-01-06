@@ -49,8 +49,8 @@ public final class Histogram {
     return probabilities;
   }
   
-  public OptimalThreshold optimalThreshold() {
-    return new OptimalThreshold(this);
+  public OptimalThreshold optimalThreshold(final int version) {
+    return new OptimalThreshold(this, version);
   }
   
   public int getMinOccurringColor() {

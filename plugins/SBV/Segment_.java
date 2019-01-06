@@ -18,11 +18,10 @@ public final class Segment_ extends AbstractUserInputPlugIn<Segment_.Input> {
   @Override
   protected void process(final Image image) {
     final Collection<Point> seeds = ImageJUtility.getSeedPoints(imagePlus);
-    if (seeds.isEmpty()) {
-      automatic(image);
-    } else {
-      userSelection(image, seeds);
-    }
+    final Image maskWithAllSegments = seeds.isEmpty() ? automatic(image) : userSelection(image, seeds);
+  
+    addResult(maskWithAllSegments, String.format("%s - Mask with all segments", pluginName));
+    addResult(image.calculation(maskWithAllSegments).and(), String.format("%s - All segments", pluginName));
   }
   
   @Override
@@ -37,18 +36,17 @@ public final class Segment_ extends AbstractUserInputPlugIn<Segment_.Input> {
     return new Input(Integer.valueOf(dialog.getNextChoice()), Integer.valueOf(dialog.getNextChoice()));
   }
   
-  private void automatic(final Image image) {
-    final List<Segment> otLocal = image.getSegments(input.segmentWidth, input.segmentHeight);
+  private Image automatic(final Image image) {
+    final List<Segment> segments = image.getSegments(input.segmentWidth, input.segmentHeight);
     Image maskWithAllSegments = new Image(image.width, image.height);
-    for (final Segment segment : otLocal) {
+    for (final Segment segment : segments) {
       maskWithAllSegments = maskWithAllSegments.calculation(segment.mask()).or();
     }
     
-    addResult(maskWithAllSegments, String.format("%s - Mask with all segments", pluginName));
-    addResult(image.calculation(maskWithAllSegments).and(), String.format("%s - All segments", pluginName));
+    return maskWithAllSegments;
   }
   
-  private void userSelection(final Image image, final Collection<Point> seeds) {
+  private Image userSelection(final Image image, final Collection<Point> seeds) {
     final Segment.Builder segmentBuilder = image.segment().width(input.segmentWidth).height(input.segmentHeight);
     Image maskWithAllSegments = new Image(image.width, image.height);
     for (final Point seed : seeds) {
@@ -57,8 +55,7 @@ public final class Segment_ extends AbstractUserInputPlugIn<Segment_.Input> {
       maskWithAllSegments = maskWithAllSegments.calculation(segment.mask()).or();
     }
     
-    addResult(maskWithAllSegments, String.format("%s - Mask with all segments", pluginName));
-    addResult(image.calculation(maskWithAllSegments).and(), String.format("%s - All segments", pluginName));
+    return maskWithAllSegments;
   }
   
   static final class Input {
