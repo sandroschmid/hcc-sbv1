@@ -1,5 +1,7 @@
-package at.sschmid.hcc.sbv1.image;
+package at.sschmid.hcc.sbv1.image.segmentation;
 
+import at.sschmid.hcc.sbv1.image.Image;
+import at.sschmid.hcc.sbv1.image.ImageGenerator;
 import at.sschmid.hcc.sbv1.utility.Point;
 
 public final class Segment implements ImageGenerator {
@@ -66,7 +68,7 @@ public final class Segment implements ImageGenerator {
   
   public int getOptimalThreshold() {
     if (optimalThreshold == null) {
-      this.optimalThreshold = segmentImage.optimalThreshold().get();
+      this.optimalThreshold = segmentImage.histogram().optimalThreshold().get();
     }
     
     return optimalThreshold;

@@ -1,5 +1,7 @@
 package at.sschmid.hcc.sbv1.image;
 
+import at.sschmid.hcc.sbv1.image.segmentation.OptimalThreshold;
+
 import java.util.Arrays;
 
 public final class Histogram {
@@ -45,6 +47,10 @@ public final class Histogram {
     }
     
     return probabilities;
+  }
+  
+  public OptimalThreshold optimalThreshold() {
+    return new OptimalThreshold(this);
   }
   
   public int getMinOccurringColor() {

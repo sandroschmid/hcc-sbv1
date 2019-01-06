@@ -1,7 +1,7 @@
 import at.sschmid.hcc.sbv1.image.Image;
-import at.sschmid.hcc.sbv1.image.Segment;
 import at.sschmid.hcc.sbv1.image.imagej.AbstractUserInputPlugIn;
 import at.sschmid.hcc.sbv1.image.imagej.ImageJUtility;
+import at.sschmid.hcc.sbv1.image.segmentation.Segment;
 import at.sschmid.hcc.sbv1.utility.Point;
 import ij.gui.GenericDialog;
 

@@ -26,6 +26,10 @@ public final class ImageCalculation {
     return calculate("OR", (c1, c2) -> c1 > 0 ? c1 : (c2 > 0 ? c2 : 0));
   }
   
+  public Image custom(final Operation operation) {
+    return calculate("Custom", operation);
+  }
+  
   private Image calculate(final String operationName, final Operation operation) {
     final Image result = new Image(getImageName(operationName), image1.width, image1.height);
     for (int x = 0; x < image1.width; x++) {
@@ -38,11 +42,11 @@ public final class ImageCalculation {
   }
   
   private String getImageName(final String operation) {
-    return String.format("%s of '%s' and '%s'", operation, image1.getName("Image 1"), image2.getName("Image 2"));
+    return String.format("%s with '%s' and '%s'", operation, image1.getName("Image 1"), image2.getName("Image 2"));
   }
   
   @FunctionalInterface
-  private interface Operation {
+  public interface Operation {
     
     int getResultColor(final int color1, final int color2);
     

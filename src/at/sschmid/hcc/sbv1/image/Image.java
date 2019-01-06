@@ -6,6 +6,7 @@ import at.sschmid.hcc.sbv1.image.registration.DistanceMetric;
 import at.sschmid.hcc.sbv1.image.resampling.Interpolation;
 import at.sschmid.hcc.sbv1.image.resampling.Transformation;
 import at.sschmid.hcc.sbv1.image.segmentation.BinaryThreshold;
+import at.sschmid.hcc.sbv1.image.segmentation.Segment;
 import at.sschmid.hcc.sbv1.image.segmentation.Segmentation;
 import at.sschmid.hcc.sbv1.utility.Point;
 import at.sschmid.hcc.sbv1.utility.Utility;
@@ -118,10 +119,6 @@ public final class Image {
   
   public Histogram2d histogram2d(final Image other) {
     return new Histogram2d(this, other);
-  }
-  
-  public OptimalThreshold optimalThreshold() {
-    return new OptimalThreshold(this);
   }
   
   public Transformation transformation() {

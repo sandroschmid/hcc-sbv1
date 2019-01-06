@@ -1,7 +1,7 @@
 import at.sschmid.hcc.sbv1.image.Histogram;
 import at.sschmid.hcc.sbv1.image.Image;
-import at.sschmid.hcc.sbv1.image.OptimalThreshold;
 import at.sschmid.hcc.sbv1.image.imagej.AbstractUserInputPlugIn;
+import at.sschmid.hcc.sbv1.image.segmentation.OptimalThreshold;
 import ij.IJ;
 import ij.gui.GenericDialog;
 
@@ -9,7 +9,7 @@ public final class OptimalThreshold_ extends AbstractUserInputPlugIn<OptimalThre
   
   @Override
   protected void process(final Image image) {
-    final OptimalThreshold optimalThreshold = image.optimalThreshold();
+    final OptimalThreshold optimalThreshold = image.histogram().optimalThreshold();
     final boolean isAll = "All".equals(input.whichOne);
     if (isAll || "Global".equals(input.whichOne)) {
       global(image, optimalThreshold);
@@ -38,7 +38,7 @@ public final class OptimalThreshold_ extends AbstractUserInputPlugIn<OptimalThre
   
   private void global(final Image image, final OptimalThreshold optimalThreshold) {
     final int globalThreshold = optimalThreshold.get();
-    final Image globalMask = image.optimalThreshold().globalMask();
+    final Image globalMask = optimalThreshold.globalMask();
     final Image globalObjects = image.calculation(globalMask).and();
     final Image globalDiff = image.calculation(globalObjects).difference();
     

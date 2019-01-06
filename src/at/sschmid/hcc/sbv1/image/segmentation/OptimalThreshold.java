@@ -1,22 +1,25 @@
-package at.sschmid.hcc.sbv1.image;
+package at.sschmid.hcc.sbv1.image.segmentation;
 
-import at.sschmid.hcc.sbv1.image.segmentation.BinaryThreshold;
+import at.sschmid.hcc.sbv1.image.Histogram;
+import at.sschmid.hcc.sbv1.image.Image;
 
 import java.util.List;
 
 public final class OptimalThreshold {
   
   private final Image image;
+  private final Histogram histogram;
   
   private Integer globalThreshold;
   
-  OptimalThreshold(final Image image) {
-    this.image = image;
+  public OptimalThreshold(final Histogram histogram) {
+    this.image = histogram.getImage();
+    this.histogram = histogram;
   }
   
   public int get() {
     if (globalThreshold == null) {
-      double threshold = image.maxColor / 2.0d;
+      double threshold = histogram.getAverageColor();
   
       double bgSum = 0d;
       int bgCount = 0;
