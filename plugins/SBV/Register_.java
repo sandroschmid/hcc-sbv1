@@ -64,7 +64,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     dialog.addNumericField("Search radius (rotation)", DEFAULT_SEARCH_RADIUS_ROT, 0);
     dialog.addNumericField("Step width (translation)", DEFAULT_STEP_WIDTH_TRANS, 3);
     dialog.addNumericField("Step width (rotation)", DEFAULT_STEP_WIDTH_ROT, 3);
-    dialog.addNumericField("Optimization runs", DEFAULT_OPTIMIZATION_RUNS, 0);
+    dialog.addNumericField("Max optimization runs", DEFAULT_OPTIMIZATION_RUNS, 0);
     dialog.addNumericField("Scale per run", DEFAULT_SCALE_PER_RUN, 1);
   }
   
@@ -97,7 +97,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
         .stepWidthRotation(input.stepWidthRotation)
         .searchRadiusTranslation(input.searchRadiusTranslation)
         .searchRadiusRotation(input.searchRadiusRotation)
-        .optimizationRuns(input.optimizationRuns)
+        .maxOptimizationRuns(input.maxOptimizationRuns)
         .scalePerRun(input.scalePerRun)
         .build();
     
@@ -123,6 +123,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     final double diffRelative = diff / initialError * 100;
     IJ.log(String.format("Best match = %.2f (difference = %.2f = %.2f%%)", bestMatch, diff, diffRelative));
     IJ.log(String.format("Best transformations: %s", bestTransformations));
+    IJ.log(String.format("Optimization runs: %d", registration.getOptimizationRuns()));
   }
   
   static class Input {
@@ -138,7 +139,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
     private final int searchRadiusRotation;
     private final double stepWidthTranslation;
     private final double stepWidthRotation;
-    private final int optimizationRuns;
+    private final int maxOptimizationRuns;
     private final double scalePerRun;
   
     private Transformations transformations;
@@ -153,7 +154,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
           final int searchRadiusRotation,
           final double stepWidthTranslation,
           final double stepWidthRotation,
-          final int optimizationRuns,
+          final int maxOptimizationRuns,
           final double scalePerRun) {
       this.splitImage = splitImage;
       this.translationX = translationX;
@@ -165,7 +166,7 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
       this.searchRadiusRotation = searchRadiusRotation;
       this.stepWidthTranslation = stepWidthTranslation;
       this.stepWidthRotation = stepWidthRotation;
-      this.optimizationRuns = optimizationRuns;
+      this.maxOptimizationRuns = maxOptimizationRuns;
       this.scalePerRun = scalePerRun;
     }
     
@@ -184,8 +185,8 @@ public final class Register_ extends AbstractUserInputPlugIn<Register_.Input> {
           .append(stepWidthTranslation)
           .append(",\n   stepWidthRotation=")
           .append(stepWidthRotation)
-          .append(",\n   optimizationRuns=")
-          .append(optimizationRuns)
+          .append(",\n   maxOptimizationRuns=")
+          .append(maxOptimizationRuns)
           .append(",\n   scalePerRun=")
           .append(scalePerRun)
           .append("\n}")

@@ -19,22 +19,24 @@ public final class Registration {
   private final int searchRadiusRotation;
   private final double stepWidthTranslation;
   private final double stepWidthRotation;
-  private final int optimizationRuns;
+  private final int maxOptimizationRuns;
   private final double scalePerRun;
+  
+  private int optimizationRuns;
   
   private Registration(final MatchMetric matchMetric,
                        final int searchRadiusTranslation,
                        final int searchRadiusRotation,
                        final double stepWidthTranslation,
                        final double stepWidthRotation,
-                       final int optimizationRuns,
+                       final int maxOptimizationRuns,
                        final double scalePerRun) {
     if (matchMetric == null
         || searchRadiusTranslation <= 0
         || searchRadiusRotation <= 0
         || stepWidthTranslation < 0
         || stepWidthRotation < 0
-        || optimizationRuns <= 0
+        || maxOptimizationRuns <= 0
         || scalePerRun <= 0
         || scalePerRun > 1) {
       throw new IllegalArgumentException();
@@ -45,8 +47,12 @@ public final class Registration {
     this.searchRadiusRotation = searchRadiusRotation;
     this.stepWidthTranslation = stepWidthTranslation;
     this.stepWidthRotation = stepWidthRotation;
-    this.optimizationRuns = optimizationRuns;
+    this.maxOptimizationRuns = maxOptimizationRuns;
     this.scalePerRun = scalePerRun;
+  }
+  
+  public int getOptimizationRuns() {
+    return optimizationRuns;
   }
   
   public Transformations register(final Image image, final Image transformedImage) {
@@ -69,8 +75,8 @@ public final class Registration {
     double currMidTx = 0;
     double currMidTy = 0;
     double currMidRot = 0;
-    
-    for (int run = 0; run < optimizationRuns; run++) {
+  
+    for (optimizationRuns = 0; optimizationRuns < maxOptimizationRuns; optimizationRuns++) {
       ExecutorService threadPool = Utility.threadPool();
       final Deque<MatchWorker> matchWorkers = new LinkedList<>();
       final MatchWorker.Builder matchWorkerBuilder = MatchWorker.create()
@@ -150,7 +156,7 @@ public final class Registration {
     private int searchRadiusRotation;
     private double stepWidthTranslation;
     private double stepWidthRotation;
-    private int optimizationRuns;
+    private int maxOptimizationRuns;
     private double scalePerRun;
     
     private Builder() {
@@ -181,9 +187,9 @@ public final class Registration {
       this.stepWidthRotation = stepWidthRotation;
       return this;
     }
-    
-    public Builder optimizationRuns(final int optimizationRuns) {
-      this.optimizationRuns = optimizationRuns;
+  
+    public Builder maxOptimizationRuns(final int maxOptimizationRuns) {
+      this.maxOptimizationRuns = maxOptimizationRuns;
       return this;
     }
     
@@ -198,7 +204,7 @@ public final class Registration {
           searchRadiusRotation,
           stepWidthTranslation,
           stepWidthRotation,
-          optimizationRuns,
+          maxOptimizationRuns,
           scalePerRun);
     }
     
