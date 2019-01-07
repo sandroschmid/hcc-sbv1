@@ -144,7 +144,7 @@ public final class Registration {
           optimizationRuns + 1,
           newBestMatch,
           newBestMatch - bestMatch >= 0 ? "+" : "-",
-          newBestMatch - bestMatch,
+          Math.abs(newBestMatch - bestMatch),
           newBestMatch - bestMatch >= 0 ? "+" : "-",
           Math.abs(newBestMatch - initialMatch) / initialMatch * 100));
     
